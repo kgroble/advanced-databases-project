@@ -1,0 +1,150 @@
+% Created 2017-03-31 Fri 20:35
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Coleman Gibson, Derek Kuhnert, Kieran Groble}
+\date{\today}
+\title{Project Proposal}
+\hypersetup{
+ pdfauthor={Coleman Gibson, Derek Kuhnert, Kieran Groble},
+ pdftitle={Project Proposal},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 26.0.50 (Org mode 9.0.4)},
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+
+\section{Features}
+\label{sec:orgd4a8a8d}
+\subsection{Searching Users}
+\label{sec:orgd67df88}
+A main feature of our application will be to allow users to search for other
+accounts based on multiple properties, including name, interests (e.g. Vim or
+Emacs), and location. This will potentially result in a sort of user browser,
+which users can use to find potential matches.
+
+\subsection{Rank User Matches}
+\label{sec:orgd87d086}
+Something which could be used in numerous parts of our application is the
+ability to rank user matches. This could be done off a number of factors,
+including user interests and their preferences in what they are looking for
+in other users, such as giving operating system preferences a high weight.
+
+\subsection{Basic Messaging}
+\label{sec:org3d252ce}
+To make matching with other users useful, users of our app must be able to
+contact their matches in some way. We plan to do this with a basic messaging
+system.
+
+\subsection{User Caching}
+\label{sec:org565c37d}
+To make our site faster, we hope to implement a simple form of caching for
+user profiles. Users are likely to search for others far more than they will
+update their own profile, so we plan on storing a preconstructed
+representation of our users in a database with excellent read speeds. This
+representation will then be invalidated on any updates and reconstructed on
+request.
+
+
+\section{Tools}
+\label{sec:org17d197a}
+\subsection{Front End}
+\label{sec:orgd1539c8}
+\subsubsection{React}
+\label{sec:org07000eb}
+All three of us in the group are interested in learning React.js. We will
+use this with JavaScript, HTML, and CSS to make a basic user interface to
+our database project. It would be fairly unreasonable to make a command line
+dating application, no matter how nerdy our users are.
+
+\subsection{Back End}
+\label{sec:org280a44a}
+\subsubsection{Python}
+\label{sec:org8e29c84}
+Python is a language which we know all of our databases support well and is
+a language all of our group members are familiar with. This makes it a good
+choice for our primary back end language.
+
+\subsubsection{Flask}
+\label{sec:orgf19f034}
+We believe that a larger framework like Django would be overkill for a three
+week project, but would not like to write our web server with no support. We
+think that Flask will give a good middle ground for what will be a
+relatively small project.
+
+\section{Databases}
+\label{sec:org9f33ca5}
+\subsection{ArangoDB}
+\label{sec:org69a850b}
+This will be our main store for any data involving relationships. For
+example, we will use this to store things like user operating system
+preferences and matches between users. The graph structure this database
+gives us will make it extremely easy to do things like match user preferences
+and check the number of shared matches two users have.
+
+\subsection{Redis}
+\label{sec:orgbde3df8}
+We will use Redis as a basic store for noncritical data like user sessions in
+our site. We would also like to experiment with using Redis as a user cache
+so that we can serve documents constructed from ArangoDB and MongoDB without
+reconstructing them from the databases.
+
+\subsection{MongoDB}
+\label{sec:org4a5a135}
+MongoDB will be used for storing user profiles (including name, age,
+description) as well as the chat data for our basic messenger. In short, it
+will be used to store data which does not have any relationships. This will
+give us some of the write and read speed benefits of Mongo where we can use
+them. We wont lose the ability to store relationships entirely as we will
+still be using ArangoDB for our relational data.
+
+\section{Visual Representation}
+\label{sec:orga769d6e}
+
+\subsection{ArangoDB}
+\label{sec:orged9e0b8}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{./arango.png}
+\caption{ArangoDB data model}
+\end{figure}
+
+\subsection{Redis}
+\label{sec:org8a316e0}
+
+\begin{verbatim}
+<username>-session = user-session
+<username>-cached-document = user-document
+\end{verbatim}
+
+\subsection{MongoDB}
+\label{sec:org303ae3a}
+\begin{verbatim}
+user {
+    username,
+    name,
+    birthday,
+    description
+}
+
+chat {
+    user1,
+    user2,
+    text
+}
+\end{verbatim}
+\end{document}
