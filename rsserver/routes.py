@@ -8,11 +8,10 @@ app = Flask(__name__, static_url_path='/static', static_folder='../client/dist/'
 @app.route('/users/', methods=['GET', 'POST'])
 def users():
     uname = "No username provided"
+    print('test')
     if (request.method == 'POST'):
-        # uname = request.form['username']
-        # data = request.get_json()
-        # do something with this
-        return {}
+        data = request.get_json()
+        return 'ummm'
 
     if (request.method == 'GET'):
         return uname
