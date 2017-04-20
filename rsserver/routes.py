@@ -1,19 +1,21 @@
 
 from flask import Flask, abort, redirect, url_for, render_template, \
-        send_from_directory, request
+    send_from_directory, request
 
 app = Flask(__name__, static_url_path='/static', static_folder='../client/dist/')
 
 
 @app.route('/users/', methods=['GET', 'POST'])
 def users():
-	uname = "No username provided"
-	if (request.method == 'POST'):
-		uname = request.form['username']
-		# do something with this
+    uname = "No username provided"
+    if (request.method == 'POST'):
+        # uname = request.form['username']
+        # data = request.get_json()
+        # do something with this
+        return {}
 
-	if (request.method == 'GET'):
-		return uname
+    if (request.method == 'GET'):
+        return uname
 
 
 @app.route('/')
@@ -24,4 +26,4 @@ def default(**path):
 
 
 if (__name__ == '__main__'):
-	app.run(debug=True)
+    app.run(debug=True)
