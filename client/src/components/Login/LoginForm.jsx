@@ -28,7 +28,7 @@ export default class LoginForm extends React.Component {
 
 
   isValidUsername(uname) {
-    return /\w+/.test(uname) || !this.state.usernameStarted;
+    return /^\w+$/.test(uname) || !this.state.usernameStarted;
   }
 
 
