@@ -4,11 +4,10 @@ from flask import Flask, abort, redirect, url_for, render_template, \
 
 app = Flask(__name__, static_url_path='/static', static_folder='../client/dist/')
 
-uname = "No username provided"
 
 @app.route('/users/', methods=['GET', 'POST'])
 def users():
-	global uname
+	uname = "No username provided"
 	if (request.method == 'POST'):
 		uname = request.form['username']
 		# do something with this
@@ -17,8 +16,10 @@ def users():
 		return uname
 
 
+@app.route('/')
 @app.route('/<path:path>')
-def hello_world(path):
+def default(**path):
+    # Note that path will be in a list here
     return send_from_directory('../client/src/', 'index.html')
 
 
