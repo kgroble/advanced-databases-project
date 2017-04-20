@@ -4,6 +4,12 @@
 */
 
 import React from 'react';
+import * as axios from 'axios';
+
+
+/*
+   Code
+*/
 
 export default class LoginForm extends React.Component {
 
@@ -11,13 +17,10 @@ export default class LoginForm extends React.Component {
   constructor(props) {
     super(props);
 
-    console.log('Constructor called');
-
     this.state = {
       usernameStarted: false,
       username: ''
     }
-
   }
 
 
@@ -28,22 +31,29 @@ export default class LoginForm extends React.Component {
 
 
   isValidUsername(uname) {
-    return /\w+/.test(uname) || !this.state.usernameStarted;
+    return /^\w+$/.test(uname) || !this.state.usernameStarted;
   }
 
 
+  createUserRequest(username) {
+    let loc = '/users/'
+    axios.post(loc, {
+      username: this.state.username
+    });
+  }
+
 
   render() {
-
     let invalidUsername;
 
     if (!this.isValidUsername(this.state.username)) {
-      invalidUsername = <label>Invalid username.</label>
+      let invalidUsername = <label>Invalid username.</label>
     }
 
     return (
       <form>
 
+        {/* Entering username */}
         <label htmlFor="username-input">Username:</label>
         <input id="username-input"
                type="text"
@@ -51,9 +61,14 @@ export default class LoginForm extends React.Component {
                onChange={this.usernameChanged.bind(this)}/>
         {invalidUsername}
 
+        <p>This is changing, right?</p>
+
         <p>{this.state.username}</p>
 
-        <button type="button">Create profile</button>
+        {/* End of form */}
+        <button type="button" onClick={this.createUserRequest.bind(this)}>
+          Create profile
+        </button>
       </form>
     );
   }

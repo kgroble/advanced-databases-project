@@ -6,9 +6,14 @@
 
 // libraries
 import React from 'react';
+import { Router
+       , Switch } from 'react-router';
+import { BrowserRouter
+       , Route } from 'react-router-dom'
 
 // other components
-import LoginForm from './Login/LoginForm.jsx'
+import Login from './Login/Login.jsx'
+import Home from './Home/Home.jsx'
 
 // css
 
@@ -20,12 +25,12 @@ import LoginForm from './Login/LoginForm.jsx'
 export default class App extends React.Component {
     render() {
         return (
+          <BrowserRouter>
             <div>
-                <h1>Dating for Nerds</h1>
-
-                <LoginForm>
-                </LoginForm>
+              <Route path="/" component={Home} />
+              <Route path="/login" component={Login} />
             </div>
+          </BrowserRouter>
         );
     }
 }
