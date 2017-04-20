@@ -1,20 +1,18 @@
-
 from flask import Flask, abort, redirect, url_for, render_template, \
     send_from_directory, request
+import server
 
 app = Flask(__name__, static_url_path='/static', static_folder='../client/dist/')
 
-
 @app.route('/users/', methods=['GET', 'POST'])
 def users():
-    uname = "No username provided"
-    print('test')
     if (request.method == 'POST'):
         data = request.get_json()
-        return 'ummm'
+        server.addUser(data['username'])
+        return "POST succeeded"
 
     if (request.method == 'GET'):
-        return uname
+        return server.getUsernames()
 
 
 @app.route('/')
@@ -22,7 +20,3 @@ def users():
 def default(**path):
     # Note that path will be in a list here
     return send_from_directory('../client/src/', 'index.html')
-
-
-if (__name__ == '__main__'):
-    app.run(debug=True)
