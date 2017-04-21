@@ -11,4 +11,10 @@ class UserGraph(Graph):
 def createUser(db, uname):
     userGraph = db.graphs['UserGraph']
     newUser = userGraph.createVertex('Users', {'uname': uname})
-    return jsonify(newUser._store)
+    return jsonify(newUser._store), status.HTTP_201_CREATED
+
+def getUsers(db):
+    users = db['Users'].fetchAll()
+    print(users)
+    users = db['Users'].fetchAll(rawResults=True)
+    print(users)

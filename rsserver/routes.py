@@ -12,10 +12,10 @@ db = conn['RelationalSchema']
 def users():
     if (request.method == 'POST'):
         data = request.get_json()
-        return user_controller.createUser(db, data['username']), status.HTTP_201_CREATED
+        return user_controller.createUser(db, data['username'])
 
     if (request.method == 'GET'):
-        return server.getUsernames()
+        return user_controller.getUsers(db)
 
 
 @app.route('/')
