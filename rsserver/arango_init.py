@@ -5,7 +5,7 @@ from pyArango.collection import Edges
 
 conn = Connection(arangoURL='http://127.0.0.1:8529', username='root', password='foobar')
 
-conn.createDatabase(name = 'RelationalSchema')
+# conn.createDatabase(name = 'RelationalSchema')
 db = conn['RelationalSchema']
 class Users(Collection):
     _fields = {'uname': Field()}

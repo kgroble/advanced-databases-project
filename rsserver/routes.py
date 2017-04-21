@@ -1,9 +1,12 @@
-
+import user_controller
 from flask import Flask, abort, redirect, url_for, render_template, \
     send_from_directory, request
+from flask.ext.api import status
+from pyArango.connection import *
 
 app = Flask(__name__, static_url_path='/static', static_folder='../client/dist/')
-
+conn = Connection(arangoURL='http://127.0.0.1:8529', username='root', password='foobar')
+db = conn['RelationalSchema']
 
 @app.route('/users/', methods=['GET', 'POST'])
 def users():
@@ -11,7 +14,7 @@ def users():
     print('test')
     if (request.method == 'POST'):
         data = request.get_json()
-        return 'ummm'
+        return user_controller.createUser(db, data['username']), status.HTTP_201_CREATED
 
     if (request.method == 'GET'):
         return uname
