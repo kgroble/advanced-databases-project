@@ -10,7 +10,7 @@ export default class Home extends React.Component {
         <h1>Welcome to our website</h1>
         <NavLink to="/login">
           <button type="button">
-            Uhhhhhhhhhhhh
+            Log in
           </button>
         </NavLink>
       </div>
