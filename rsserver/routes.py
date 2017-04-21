@@ -4,8 +4,12 @@ from flask import Flask, abort, redirect, url_for, render_template, \
 from pyArango.connection import *
 from pymongo import MongoClient
 
-app = Flask(__name__, static_url_path='/static', static_folder='../client/dist/')
-arangoConn = Connection(arangoURL='http://127.0.0.1:8529', username='root', password='foobar')
+app = Flask(__name__,
+            static_url_path='/static',
+            static_folder='../client/dist/')
+arangoConn = Connection(arangoURL='http://127.0.0.1:8530',
+                        username='root',
+                        password='foobar')
 arangoDB = arangoConn['RelationalSchema']
 mongoConn = MongoClient()
 mongoDB = mongoConn.relational_schema
@@ -25,6 +29,3 @@ def users():
 def default(**path):
     # Note that path will be in a list here
     return send_from_directory('../client/src/', 'index.html')
-
-if __name__ == '__main__':
-    app.run()

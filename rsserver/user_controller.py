@@ -10,6 +10,9 @@ class UserGraph(Graph):
     _orphanedCollections = []
 
 def createUser(arangoDB, mongoDB, uname):
+    if mongoDB.users.find_one({'uname': uname}) != None:
+        return jsonify({'error': 'User already exists.'}), \
+            status.HTTP_400_BAD_REQUEST
     userGraph = arangoDB.graphs['UserGraph']
     newUser = userGraph.createVertex('Users', {'uname': uname})
     mongoDB.users.insert_one({'uname': uname})
@@ -19,5 +22,5 @@ def getUsers(db):
     users = db['Users'].fetchAll(rawResults=True)
     userArray = []
     for u in users:
-        userArray += [u]
+        userArray.append(u)
     return jsonify(userArray), status.HTTP_200_OK
