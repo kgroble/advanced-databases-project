@@ -31,14 +31,23 @@ export default class LoginForm extends React.Component {
 
 
   isValidUsername(uname) {
-    return /^\w+$/.test(uname) || !this.state.usernameStarted;
+    return /^\w+$/.test(uname);
   }
 
 
-  createUserRequest(username) {
+  createUserRequest(data) {
+    let username = this.state.username;
     let loc = '/users/'
+
+    if (!this.isValidUsername(username)) {
+      alert('bad username');
+      return;
+    }
+
     axios.post(loc, {
       username: this.state.username
+    }).then(resp => {
+      console.log('Created user');
     });
   }
 
@@ -46,8 +55,8 @@ export default class LoginForm extends React.Component {
   render() {
     let invalidUsername;
 
-    if (!this.isValidUsername(this.state.username)) {
-      let invalidUsername = <label>Invalid username.</label>
+    if (!this.isValidUsername(this.state.username) && this.state.usernameStarted) {
+      invalidUsername = <label>Invalid username.</label>
     }
 
     return (
@@ -72,6 +81,4 @@ export default class LoginForm extends React.Component {
       </form>
     );
   }
-
-
 }
