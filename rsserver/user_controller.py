@@ -3,6 +3,7 @@ from pyArango.graph import Graph, EdgeDefinition
 from pyArango.collection import Collection, Field
 from pyArango.collection import Edges
 from flask import jsonify
+from flask_api import status
 
 class UserGraph(Graph):
     _edgeDefinitions = [EdgeDefinition('Match', fromCollections = ['Users'], toCollections = ['Users'])]
@@ -14,7 +15,8 @@ def createUser(db, uname):
     return jsonify(newUser._store), status.HTTP_201_CREATED
 
 def getUsers(db):
-    users = db['Users'].fetchAll()
-    print(users)
     users = db['Users'].fetchAll(rawResults=True)
-    print(users)
+    userArray = []
+    for u in users:
+        userArray += [u]
+    return jsonify(userArray), status.HTTP_200_OK

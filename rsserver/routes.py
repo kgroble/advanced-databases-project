@@ -1,7 +1,6 @@
 import user_controller
 from flask import Flask, abort, redirect, url_for, render_template, \
     send_from_directory, request
-from flask_api import status
 from pyArango.connection import *
 
 app = Flask(__name__, static_url_path='/static', static_folder='../client/dist/')
