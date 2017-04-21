@@ -47,7 +47,8 @@ export default class LoginForm extends React.Component {
     axios.post(loc, {
       username: this.state.username
     }).then(resp => {
-      console.log('Created user');
+      let uname = resp.data.uname;
+      location.replace('/home/'+uname+'/');
     });
   }
 

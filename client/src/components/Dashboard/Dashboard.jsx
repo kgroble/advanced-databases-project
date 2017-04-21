@@ -13,7 +13,7 @@ export default class Dashboard extends React.Component {
   }
 
   render() {
-    let user = /\/home\/(.*)\//.exec(this.props.location.pathname)[1];
+    let user = /\/home\/(.*)\/?/.exec(this.props.location.pathname)[1];
 
     return (
       <div>

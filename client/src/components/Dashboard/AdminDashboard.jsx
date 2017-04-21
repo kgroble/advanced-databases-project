@@ -9,22 +9,36 @@ export default class AdminDashboard extends React.Component {
       users: []
     }
 
-    axios.get('/users/', {
-
-    }).then(users => {
-      this.setState({
-        users: users
-      });
-    });
-
+    this.refreshUsers();
   }
 
+
+  refreshUsers() {
+    axios.get('/users/', {})
+         .then(resp => {
+           let users = resp.data;
+           console.log(users);
+           this.setState({
+             users: users
+           });
+         });
+  }
+
+
   render() {
+
+    let userHtml = this.state.users.map(x => {
+      console.log(x);
+      return (
+        <p key={x._id}>{x.uname}</p>
+      )
+    });
+
     return (
       <div>
         <div>
           <h3>All users</h3>
-          {this.state.users}
+          {userHtml}
         </div>
       </div>
     );
