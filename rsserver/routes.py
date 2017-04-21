@@ -25,3 +25,6 @@ def users():
 def default(**path):
     # Note that path will be in a list here
     return send_from_directory('../client/src/', 'index.html')
+
+if __name__ == '__main__':
+    app.run()
