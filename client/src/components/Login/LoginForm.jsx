@@ -19,7 +19,8 @@ export default class LoginForm extends React.Component {
 
     this.state = {
       usernameStarted: false,
-      username: ''
+      username: '',
+      errorMsg: false
     }
   }
 
@@ -27,6 +28,7 @@ export default class LoginForm extends React.Component {
   usernameChanged(event) {
     this.setState({usernameStarted: true});
     this.setState({username: event.target.value});
+    this.setState({errorMsg: false});
   }
 
 
@@ -49,15 +51,24 @@ export default class LoginForm extends React.Component {
     }).then(resp => {
       let uname = resp.data.uname;
       location.replace('/home/'+uname+'/');
+    }, err => {
+      this.setState({
+        errorMsg: true
+      });
     });
   }
 
 
   render() {
     let invalidUsername;
+    let errorMessage;
 
     if (!this.isValidUsername(this.state.username) && this.state.usernameStarted) {
       invalidUsername = <label>Invalid username.</label>
+    }
+
+    if (this.state.errorMsg != false) {
+      errorMessage = <p>User already exists.</p>;
     }
 
     return (
@@ -69,11 +80,11 @@ export default class LoginForm extends React.Component {
                type="text"
                value={this.state.username}
                onChange={this.usernameChanged.bind(this)}/>
-        {invalidUsername}
 
-        <p>This is changing, right?</p>
-
-        <p>{this.state.username}</p>
+        <div>
+          {invalidUsername}
+          {errorMessage}
+        </div>
 
         {/* End of form */}
         <button type="button" onClick={this.createUserRequest.bind(this)}>
