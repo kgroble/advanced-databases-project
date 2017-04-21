@@ -9,9 +9,10 @@ class UserGraph(Graph):
     _edgeDefinitions = [EdgeDefinition('Match', fromCollections = ['Users'], toCollections = ['Users'])]
     _orphanedCollections = []
 
-def createUser(db, uname):
-    userGraph = db.graphs['UserGraph']
+def createUser(arangoDB, mongoDB, uname):
+    userGraph = arangoDB.graphs['UserGraph']
     newUser = userGraph.createVertex('Users', {'uname': uname})
+    mongoDB.users.insert_one({'uname': uname})
     return jsonify(newUser._store), status.HTTP_201_CREATED
 
 def getUsers(db):
