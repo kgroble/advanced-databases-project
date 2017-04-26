@@ -5,8 +5,12 @@ from pyArango.collection import Edges
 
 conn = Connection(arangoURL='http://127.0.0.1:8530', username='root', password='foobar')
 
-# conn.createDatabase(name = 'RelationalSchema')
-db = conn['RelationalSchema']
+try:
+    db = conn['RelationalSchema']
+except KeyError:
+    conn.createDatabase(name = 'RelationalSchema')
+    db = conn['RelationalSchema']
+
 class Users(Collection):
     _fields = {'uname': Field()}
 
@@ -16,7 +20,9 @@ class Match(Edges):
 
 
 class UserGraph(Graph):
-    _edgeDefinitions = [EdgeDefinition('Match', fromCollections = ['Users'], toCollections = ['Users'])]
+    _edgeDefinitions = [EdgeDefinition('Match',
+                                       fromCollections = ['Users'],
+                                       toCollections = ['Users'])]
     _orphanedCollections = []
 
 
