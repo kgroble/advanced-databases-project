@@ -39,7 +39,7 @@ export default class LoginForm extends React.Component {
 
   createUserRequest(data) {
     let username = this.state.username;
-    let loc = '/users/'
+    let loc = '/user/'
 
     if (!this.isValidUsername(username)) {
       alert('bad username');
@@ -59,9 +59,15 @@ export default class LoginForm extends React.Component {
   }
 
 
+  login() {
+    let username = this.state.username;
+  }
+
+
   render() {
     let invalidUsername;
     let errorMessage;
+    let username = this.state.username;
 
     if (!this.isValidUsername(this.state.username) && this.state.usernameStarted) {
       invalidUsername = <label>Invalid username.</label>
@@ -70,6 +76,8 @@ export default class LoginForm extends React.Component {
     if (this.state.errorMsg != false) {
       errorMessage = <p>User already exists.</p>;
     }
+
+    let isDisabled = !this.isValidUsername(username) ? 'disabled' : '';
 
     return (
       <form>
@@ -87,8 +95,15 @@ export default class LoginForm extends React.Component {
         </div>
 
         {/* End of form */}
-        <button type="button" onClick={this.createUserRequest.bind(this)}>
+        <button type="button"
+                onClick={this.createUserRequest.bind(this)}
+                disabled={!this.isValidUsername(username)} >
           Create profile
+        </button>
+        <button type="button"
+                onClick={this.login.bind(this)}
+                disabled={!this.isValidUsername(username)} >
+          Login
         </button>
       </form>
     );

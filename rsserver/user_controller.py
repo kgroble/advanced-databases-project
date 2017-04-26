@@ -5,18 +5,28 @@ from pyArango.collection import Edges
 from flask import jsonify
 from flask_api import status
 
+
 class UserGraph(Graph):
-    _edgeDefinitions = [EdgeDefinition('Match', fromCollections = ['Users'], toCollections = ['Users'])]
+    _edgeDefinitions = [EdgeDefinition('Match',
+                                       fromCollections = ['Users'],
+                                       toCollections = ['Users'])]
     _orphanedCollections = []
 
+
 def createUser(arangoDB, mongoDB, uname):
-    if mongoDB.users.find_one({'uname': uname}) != None:
-        return jsonify({'error': 'User already exists.'}), \
-            status.HTTP_400_BAD_REQUEST
     userGraph = arangoDB.graphs['UserGraph']
-    newUser = userGraph.createVertex('Users', {'uname': uname})
-    mongoDB.users.insert_one({'uname': uname})
-    return jsonify(newUser._store), status.HTTP_201_CREATED
+    try:
+        newUser = userGraph.createVertex('Users', {'uname': uname})
+        mongoUser = mongoDB.users.insert_one({'uname': uname})
+        return newUser
+    except CreationError:
+        return False
+
+
+def get_user(arango, mongo, uname):
+    user = mongo.users.find_one({'uname': uname})
+    return user
+
 
 def getUsers(db):
     users = db['Users'].fetchAll(rawResults=True)

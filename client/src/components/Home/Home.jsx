@@ -1,11 +1,21 @@
 
 import React from 'react';
-
 import { NavLink } from 'react-router-dom';
+import { Redirect } from 'react-router';
+
+import { isAuthenticated } from '../auth';
 
 export default class Home extends React.Component {
+
+  authenticate() {
+
+  }
+
+
   render() {
-    return (
+    return !isAuthenticated() ? (
+      <Redirect to='/login' />
+    ) : (
       <div>
         <h1>Welcome to our website</h1>
         <NavLink to="/login">
@@ -14,6 +24,6 @@ export default class Home extends React.Component {
           </button>
         </NavLink>
       </div>
-    )
+    );
   }
 }

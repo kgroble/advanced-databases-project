@@ -1,8 +1,9 @@
 import user_controller
 from flask import Flask, abort, redirect, url_for, render_template, \
-    send_from_directory, request
+    send_from_directory, request, jsonify
 from pyArango.connection import *
 from pymongo import MongoClient
+from flask_api import status
 
 app = Flask(__name__,
             static_url_path='/static',
@@ -14,18 +15,41 @@ arangoDB = arangoConn['RelationalSchema']
 mongoConn = MongoClient()
 mongoDB = mongoConn.relational_schema
 
-@app.route('/users/', methods=['GET', 'POST'])
-def users():
-    if (request.method == 'POST'):
-        data = request.get_json()
-        return user_controller.createUser(arangoDB, mongoDB, data['username'])
 
+@app.route('/users/', methods=['GET'])
+def users():
     if (request.method == 'GET'):
         return user_controller.getUsers(arangoDB)
+
+
+@app.route('/user/<username>/', methods=['GET'])
+def specific_user(username):
+    user = user_controller.get_user(arangoDB, mongoDB, username)
+    if user == None:
+        stat = status.HTTP_404_NOT_FOUND
+        jsn = jsonify({'error': 'User not found.'})
+    else:
+        user['_id'] = str(user['_id'])
+        stat = status.HTTP_200_OK
+        jsn = jsonify(user)
+    return jsn, stat
+
+
+@app.route('/user/', methods=['POST'])
+def user():
+    data = request.get_json(force=True)
+    username = data['username']
+    new_user = user_controller.createUser(arangoDB, mongoDB, username)
+    if not new_user:
+        return jsonify({'error': 'User already exists.'}), \
+            status.HTTP_400_BAD_REQUEST
+    else:
+        return jsonify(new_user._store), \
+            status.HTTP_201_CREATED
+
 
 
 @app.route('/')
 @app.route('/<path:path>')
 def default(**path):
-    # Note that path will be in a list here
     return send_from_directory('../client/src/', 'index.html')
