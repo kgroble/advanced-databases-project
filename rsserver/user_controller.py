@@ -24,18 +24,19 @@ def createUser(arangoDB, mongoDB, uname):
 
 
 def get_user(arango, mongo, uname):
-    user = mongo.users.find_one({'uname': uname})
+    user = mongo.users.find_one({'uname': uname}, projection={'_id': False})
     return user
 
 
 def getUsers(db):
-    users = db['Users'].fetchAll(rawResults=True)
+    users = db.users.find(projection={'_id': False})
+    print(users)
     userArray = []
     for u in users:
         userArray.append(u)
+    print(userArray)
     return jsonify(userArray), status.HTTP_200_OK
 
-def updateUserAttributes(mongo, data):
-    username = data['uname']
-    mongo.users.update_one({'uname' : username}, {'$set': data}, upsert=True)
-    return jsonify(data)
+def updateUserAttributes(mongo, uname, data):
+    mongo.users.update_one({'uname' : uname}, {'$set': data}, upsert=True)
+    return jsonify({}), status.HTTP_204_NO_CONTENT

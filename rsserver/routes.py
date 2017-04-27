@@ -48,22 +48,25 @@ def users():
     if not logged_in(username):
         return not_logged_in()
     if (request.method == 'GET'):
-        return user_controller.getUsers(arangoDB)
+        return user_controller.getUsers(mongoDB)
 
 
-@app.route('/user/<username>/', methods=['GET'])
+@app.route('/user/<username>/', methods=['GET', 'PATCH'])
 def specific_user(username):
-    if not logged_in(username):
-        return not_logged_in()
-    user = user_controller.get_user(arangoDB, mongoDB, username)
-    if user == None:
-        stat = status.HTTP_404_NOT_FOUND
-        jsn = jsonify({'error': 'User not found.'})
-    else:
-        user['_id'] = str(user['_id'])
-        stat = status.HTTP_200_OK
-        jsn = jsonify(user)
-    return jsn, stat
+    if request.method == 'GET':
+        if not logged_in(username):
+            return not_logged_in()
+        user = user_controller.get_user(arangoDB, mongoDB, username)
+        if user == None:
+            stat = status.HTTP_404_NOT_FOUND
+            jsn = jsonify({'error': 'User not found.'})
+        else:
+            # user['_id'] = str(user['_id'])
+            stat = status.HTTP_200_OK
+            jsn = jsonify(user)
+        return jsn, stat
+    elif request.method == 'PATCH':
+        return user_controller.updateUserAttributes(mongoDB, username, request.get_json())
 
 
 @app.route('/user/', methods=['POST'])
