@@ -7,4 +7,4 @@ if (__name__ == '__main__'):
         dbg = False
     else:
         dbg = True
-    routes.app.run(debug=dbg)
+    routes.app.run(debug=dbg, port=80)
