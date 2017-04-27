@@ -1,6 +1,6 @@
 import user_controller
 from flask import Flask, abort, redirect, url_for, render_template, \
-    send_from_directory, request, jsonify
+    send_from_directory, request, jsonify, session, redirect
 from pyArango.connection import *
 from pymongo import MongoClient
 from flask_api import status
@@ -16,14 +16,45 @@ mongoConn = MongoClient()
 mongoDB = mongoConn.relational_schema
 
 
+def logged_in(username):
+    if username in session:
+        return False
+    return True
+
+
+def not_logged_in():
+    return redirect("/login", code=302)
+
+
+@app.route('/login/', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data['username']
+    session['username'] = username
+    return jsonify({'username': username}), status.HTTP_200_OK
+
+
+@app.route('/logout/', methods=['POST'])
+def logout():
+    data = request.get_json()
+    username = data['username']
+    del session['username']
+    return jsonify({'username': username}), status.HTTP_200_OK
+
+
 @app.route('/users/', methods=['GET'])
 def users():
+    username = request.args.get('username')
+    if not logged_in(username):
+        return not_logged_in()
     if (request.method == 'GET'):
         return user_controller.getUsers(arangoDB)
 
 
 @app.route('/user/<username>/', methods=['GET'])
 def specific_user(username):
+    if not logged_in(username):
+        return not_logged_in()
     user = user_controller.get_user(arangoDB, mongoDB, username)
     if user == None:
         stat = status.HTTP_404_NOT_FOUND
