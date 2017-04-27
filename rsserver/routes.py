@@ -8,7 +8,7 @@ from flask_api import status
 app = Flask(__name__,
             static_url_path='/static',
             static_folder='../client/dist/')
-arangoConn = Connection(arangoURL='http://127.0.0.1:8530',
+arangoConn = Connection(arangoURL='http://127.0.0.1:8529',
                         username='root',
                         password='foobar')
 arangoDB = arangoConn['RelationalSchema']
