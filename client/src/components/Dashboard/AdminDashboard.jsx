@@ -14,21 +14,23 @@ export default class AdminDashboard extends React.Component {
 
 
   refreshUsers() {
-    axios.get('/users/', {})
-         .then(resp => {
-           let users = resp.data;
-           console.log(users);
-           this.setState({
-             users: users
-           });
-         });
+    axios.get('/users/', {
+      params: {
+        username: 'jcolemang'
+      }
+    }).then(resp => {
+      let users = resp.data;
+      console.log(users);
+      this.setState({
+        users: users
+      });
+    });
   }
 
 
   render() {
 
     let userHtml = this.state.users.map(x => {
-      console.log(x);
       return (
         <p key={x._id}>{x.uname}</p>
       )

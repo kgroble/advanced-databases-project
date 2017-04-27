@@ -34,3 +34,8 @@ def getUsers(db):
     for u in users:
         userArray.append(u)
     return jsonify(userArray), status.HTTP_200_OK
+
+def updateUserAttributes(mongo, data):
+    username = data['uname']
+    mongo.users.update_one({'uname' : username}, {'$set': data}, upsert=True)
+    return jsonify(data)
