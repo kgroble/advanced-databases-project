@@ -3,9 +3,9 @@ from pyArango.graph import Graph, EdgeDefinition
 from pyArango.collection import Collection, Field
 from pyArango.collection import Edges
 
-conn = Connection(arangoURL='http://127.0.0.1:8529',
+conn = Connection(arangoURL='http://cdk433.csse.rose-hulman.edu:8529',
                   username='root',
-                  password='foobar')
+                  password='srirammohan')
 
 # Creating/getting the database
 try:
