@@ -23,7 +23,7 @@ class Match(Edges):
 
 
 class Response(Collection):
-    _fields = {'label': Field()}
+    _fields = {'code': Field()}
 
 class Answer(Edges):
     _fields = {}
@@ -50,8 +50,16 @@ db['Users'].ensureHashIndex(['uname'], unique = True)
 g = db.createGraph('UserGraph')
 c = g.createVertex('Users', {'uname': 'coleman'})
 k = g.createVertex('Users', {'uname': 'kieran'})
-tabs = g.createVertex('Response', {'label': 'tabs'})
-spaces = g.createVertex('Response', {'label': 'spaces'})
+tabs = g.createVertex('Response', {'code': 'indentation-tabs'})
+spaces = g.createVertex('Response', {'code': 'indentation-spaces'})
+g.createVertex('Response', {'code': 'editor-emacs'})
+g.createVertex('Response', {'code': 'editor-vim'})
+g.createVertex('Response', {'code': 'editor-both'})
+g.createVertex('Response', {'code': 'editor-neither'})
+g.createVertex('Response', {'code': 'os-linux'})
+g.createVertex('Response', {'code': 'os-osx'})
+g.createVertex('Response', {'code': 'os-windows'})
+g.createVertex('Response', {'code': 'os-other'})
 g.link('Answer', c, spaces, {})
 g.link('Answer', k, tabs, {})
 g.link('Match', c, k, {'strength': 9999})

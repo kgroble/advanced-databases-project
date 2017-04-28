@@ -30,11 +30,9 @@ def get_user(arango, mongo, uname):
 
 def getUsers(db):
     users = db.users.find(projection={'_id': False})
-    print(users)
     userArray = []
     for u in users:
         userArray.append(u)
-    print(userArray)
     return jsonify(userArray), status.HTTP_200_OK
 
 def updateUserAttributes(mongo, uname, data):

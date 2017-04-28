@@ -1,4 +1,4 @@
-import user_controller
+import user_controller, question_controller
 from flask import Flask, abort, redirect, url_for, render_template, \
     send_from_directory, request, jsonify, session, redirect
 from pyArango.connection import *
@@ -12,7 +12,7 @@ arangoConn = Connection(arangoURL='http://cdk433.csse.rose-hulman.edu:8529',
                         username='root',
                         password='srirammohan')
 arangoDB = arangoConn['RelationalSchema']
-mongoConn = MongoClient("mongodb://cdk433.csse.rose-hulman.edu:27017")
+mongoConn = MongoClient("mongodb://cdk433.csse.rose-hulman.edu:27017", replicaset='cdk')
 mongoDB = mongoConn.relational_schema
 
 
@@ -31,7 +31,7 @@ def login():
     data = request.get_json()
     username = data['username']
     session['username'] = username
-    return jsonify({'username': username}), status.HTTP_200_OK
+    return jsonify({'username': username}), status.HTTP_201_CREATED
 
 
 @app.route('/logout/', methods=['POST'])
@@ -50,6 +50,13 @@ def users():
     if (request.method == 'GET'):
         return user_controller.getUsers(mongoDB)
 
+@app.route('/questions/', methods=['GET'])
+def questions():
+    username = request.args.get('username')
+    if not logged_in(username):
+        return not_logged_in()
+    if (request.method == 'GET'):
+        return question_controller.getQuestions(mongoDB)
 
 @app.route('/user/<username>/', methods=['GET', 'PATCH'])
 def specific_user(username):
@@ -68,6 +75,13 @@ def specific_user(username):
     elif request.method == 'PATCH':
         return user_controller.updateUserAttributes(mongoDB, username, request.get_json())
 
+@app.route('/user/<username>/answer/<code>', methods=['POST'])
+def answerQuestion(username, code):
+    if request.method == 'POST':
+        if not logged_in(username):
+            return not_logged_in()
+        return question_controller.setAnswer(arangoDB, username, code)
+
 
 @app.route('/user/', methods=['POST'])
 def user():
@@ -80,10 +94,6 @@ def user():
     else:
         return jsonify(new_user._store), \
             status.HTTP_201_CREATED
-
-@app.route('/userattributes/', methods=['POST'])
-def user_attributes():
-    return user_controller.updateUserAttributes(mongoDB, request.get_json())
 
 
 
