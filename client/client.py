@@ -12,7 +12,8 @@ def repl(hosts, comms):
         first, *rest = words
         command = get_command(first, comms)
         try:
-            out = command.run(rest)
+            out = command.run(rest, '', '')
+            print(out)
         except WrongNumberArguments:
             print('Wrong number of arguments.')
 
@@ -24,7 +25,11 @@ def main():
     #           'http://cdk435.csse.rose-hulman.edu' ]
     hosts = [ 'http://127.0.0.1' ]
 
-    comms = [ GetUser(hosts) ]
+    comms = [ GetUser(hosts),
+              GetAllUsers(hosts),
+              GetQuestions(hosts),
+              AnswerQuestion(hosts) ]
+    comms.append(HelpCommand(comms))
 
     repl(hosts, comms)
 
