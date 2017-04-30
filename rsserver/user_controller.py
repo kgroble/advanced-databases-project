@@ -4,13 +4,31 @@ from pyArango.collection import Collection, Field
 from pyArango.collection import Edges
 from flask import jsonify
 from flask_api import status
+import bcrypt
 
+user_hashes = 'hashes'
 
 class UserGraph(Graph):
     _edgeDefinitions = [EdgeDefinition('Match',
                                        fromCollections = ['Users'],
                                        toCollections = ['Users'])]
     _orphanedCollections = []
+
+
+# NOTE: These passwords are not secure
+def is_logged_in(username, key, redis_conn):
+    if not redis_conn.hexists(user_hashes, username):
+        return False
+    hashed = redisConn.hget(user_hashes, username)
+    return hashed == key
+
+
+def log_in(username, hpw, mongo_conn, redis_conn):
+    user_doc = mongo_conn.users.find_one({'uname': username})
+    if bcrypt.checkpw(hpw.encode(), user_doc['password'].encode()):
+        redis_conn.hset(user_hashes, username, hpw)
+        return True
+    return False
 
 
 def createUser(arangoDB, mongoDB, uname):

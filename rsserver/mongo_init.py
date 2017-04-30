@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 import pymongo
 import socket
+import hashlib
+import bcrypt
 
 if 'cdk' in socket.gethostname():
     mongo_url = 'mongodb://cdk433.csse.rose-hulman.edu'
@@ -21,9 +23,18 @@ except pymongo.errors.DuplicateKeyError:
 users.delete_many({})
 questions.delete_many({})
 
-users.insert_many([{'uname': 'coleman'},
-                   {'uname': 'kieran'},
-                   {'uname': 'derek'}])
+h = hashlib.sha256()
+h.update(b'abc')
+hashed_pw = h.hexdigest()
+pw = bcrypt.hashpw(hashed_pw.encode(), bcrypt.gensalt()).decode()
+
+
+users.insert_many([{'uname': 'coleman',
+                    'password': pw},
+                   {'uname': 'kieran',
+                    'password': pw},
+                   {'uname': 'derek',
+                    'password': pw}])
 
 
 indentation = {'_id': 'indentation',

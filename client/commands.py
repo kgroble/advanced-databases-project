@@ -1,6 +1,8 @@
 
 import api
 from functools import reduce
+import getpass
+import bcrypt
 
 
 """
@@ -14,6 +16,15 @@ class WrongNumberArguments(Exception):
 """
 COMMANDS
 """
+
+
+class LogInCommand(object):
+    def __init__(self, hosts):
+        self._hosts = hosts
+    def run(self, args_list):
+        raise NotImplemented('"run" has not been implemented.')
+    def get_usage(self):
+        raise NotImplemented('"get_usage" has not been implemented')
 
 
 class Command(object):
@@ -72,16 +83,25 @@ class GetQuestions(Command):
         super(GetQuestions, self).__init__(hosts)
         self.name = 'get-questions'
     def run(self, args_list, auth_user, key):
-        if len(args_list) != 1:
-            raise WrongNumberArguments('Command takes one argument.')
-        username = args_list[0]
-        try:
-            qs = api.get_questions(username, self._hosts, auth_user, key)
-        except api.UserDoesNotExist:
-            return 'User does not exist.'
-        return qs.json()
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command takes no arguments.')
+        qs = api.get_questions(self._hosts, auth_user, key)
+        return qs
     def get_usage(self):
-        return '<username>'
+        return ''
+
+
+class GetQuestion(Command):
+    def __init__(self, hosts):
+        super(GetQuestions, self).__init__(hosts)
+        self.name = 'get-question'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 1:
+            raise WrongNumberArguments('Command takes no arguments.')
+        q = api.get_question(self._hosts, auth_user, key)
+        return q
+    def get_usage(self):
+        return '<question-id>'
 
 
 class AnswerQuestion(Command):
@@ -106,7 +126,7 @@ class HelpCommand(Command):
         super(HelpCommand, self).__init__([])
         self.name = 'help'
         self._commands = commands
-    def run(self, args_list, auth_user, key):
+    def run(self, *_):
         help_strs = map(lambda x: x.name + ' ' + x.get_usage(),
                         sorted(self._commands, key=lambda x: x.name))
         return reduce(lambda a, b: a + '\n' + b, help_strs)
@@ -114,9 +134,18 @@ class HelpCommand(Command):
         return ''
 
 
+class LogIn(LogInCommand):
+    def __init__(self, hosts):
+        super(LogIn, self).__init__(hosts)
+        self.name = 'log-in'
+    def run(self, args_list):
+        uname = input('Username: ')
+        unsafe_password = getpass.getpass()
+        success = api.log_in(uname, unsafe_password, self._hosts)
+        return success
+    def get_usage(self):
+        return ''
 
-class LogIn(Command):
-    pass
 
 
 """

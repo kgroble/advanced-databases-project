@@ -5,6 +5,7 @@ from pyArango.connection import *
 from pymongo import MongoClient
 from flask_api import status
 import socket
+import redis
 
 
 arango_username = 'root'
@@ -26,6 +27,7 @@ arangoDB = arangoConn['RelationalSchema']
 mongoConn = MongoClient(mongo_url,
                         replicaset='cdk')
 mongoDB = mongoConn.relational_schema
+redis_conn = redis.Redis()
 
 
 extra_super_secret = 'hello my name is coleman and I am the coolest'
@@ -35,8 +37,11 @@ extra_super_secret = 'hello my name is coleman and I am the coolest'
 def login():
     data = request.get_json()
     username = data['username']
-    session['username'] = username
-    return jsonify({'username': username}), status.HTTP_201_CREATED
+    password = data['hashed_password']
+    if user_controller.log_in(username, password, mongoDB, redis_conn):
+        return jsonify({}), status.HTTP_204_NO_CONTENT
+    return jsonify({}), status.HTTP_401_UNAUTHORIZED
+
 
 
 @app.route('/logout/', methods=['POST'])
@@ -50,7 +55,7 @@ def logout():
 @app.route('/users/', methods=['GET'])
 def users():
     username = request.args.get('username')
-    if not logged_in(username):
+    if not logged_in(username, key):
         return not_logged_in()
     if (request.method == 'GET'):
         return user_controller.getUsers(mongoDB)
@@ -59,7 +64,7 @@ def users():
 @app.route('/questions/', methods=['GET'])
 def questions():
     username = request.args.get('username')
-    if not logged_in(username):
+    if not logged_in(username, key):
         return not_logged_in()
     if (request.method == 'GET'):
         return question_controller.getQuestions(mongoDB)
@@ -68,7 +73,7 @@ def questions():
 @app.route('/user/<username>/', methods=['GET', 'PATCH'])
 def specific_user(username):
     if request.method == 'GET':
-        if not logged_in(username):
+        if not logged_in(username, key):
             return not_logged_in()
         user = user_controller.get_user(arangoDB, mongoDB, username)
         if user == None:
@@ -80,22 +85,28 @@ def specific_user(username):
             jsn = jsonify(user)
         return jsn, stat
     elif request.method == 'PATCH':
-        return user_controller.updateUserAttributes(mongoDB, username, request.get_json())
+        return user_controller.updateUserAttributes(mongoDB,
+                                                    username,
+                                                    request.get_json())
 
 
 @app.route('/user/<username>/answer/<code>', methods=['POST'])
 def answerQuestion(username, code):
     if request.method == 'POST':
-        if not logged_in(username):
+        if not logged_in(username, key):
             return not_logged_in()
-        return question_controller.setAnswer(arangoDB, username, code)
+        return question_controller.setAnswer(arangoDB,
+                                             username,
+                                             code)
 
 
 @app.route('/user/', methods=['POST'])
 def user():
     data = request.get_json(force=True)
     username = data['username']
-    new_user = user_controller.createUser(arangoDB, mongoDB, username)
+    new_user = user_controller.createUser(arangoDB,
+                                          mongoDB,
+                                          username)
     if not new_user:
         return jsonify({'error': 'User already exists.'}), \
             status.HTTP_400_BAD_REQUEST

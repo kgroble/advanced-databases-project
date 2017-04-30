@@ -1,5 +1,7 @@
 
 import requests as req
+import bcrypt
+import hashlib
 
 
 """
@@ -17,9 +19,8 @@ class UserDoesNotExist(Exception):
 
 
 """
-USER API
+CLASSES
 """
-
 
 class User:
     def __init__(self, username):
@@ -31,12 +32,31 @@ class User:
         return s
 
 
+class Question:
+    def __init__(self):
+        pass
+
+
+"""
+USER API
+"""
+
 def is_logged_in(username, key):
     return True
 
 
-def login(username, password, key):
-    return True
+def log_in(username, unsafe_password, hosts):
+    h = hashlib.sha256()
+    h.update(unsafe_password.encode())
+    result = make_post({'username': username,
+                        'hashed_password': h.hexdigest()},
+                       '/login/',
+                       hosts)
+    try:
+        result.raise_for_status()
+        return True
+    except:
+        return False
 
 
 def logout(username, key):
@@ -89,8 +109,8 @@ def answer_question(username, code, hosts, auth_user, key):
         return False
 
 
-def get_questions(username, hosts, auth_user, key):
-    data = make_get({'username': username,
+def get_questions(hosts, auth_user, key):
+    data = make_get({'username': auth_user,
                      'key': key},
                     '/questions/',
                     hosts)

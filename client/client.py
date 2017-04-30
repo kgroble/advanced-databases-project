@@ -1,14 +1,28 @@
 
 from commands import *
+import socket
 
 
-def log_in(hosts):
-    uname = input('username: ')
-    password = input('password: ')
+def log_in_repl(comms):
+    while True:
+        inp = input('--> ')
+        words = inp.split()
+        if len(words) == 0:
+            continue
+
+        first, *rest = words
+        command = get_command(first, comms)
+
+        res = command.run(rest)
+        if res == True:
+            break
+        if res == False:
+            print('Operation not successful')
+        else:
+            print(res)
 
 
-
-def repl(hosts, comms):
+def repl(comms):
     while True:
         inp = input('--> ')
         words = inp.split()
@@ -22,7 +36,6 @@ def repl(hosts, comms):
             print(out)
         except WrongNumberArguments:
             print('Wrong number of arguments.')
-
 
 
 def main():
@@ -39,7 +52,11 @@ def main():
               AnswerQuestion(hosts) ]
     comms.append(HelpCommand(comms))
 
-    repl(hosts, comms)
+    log_in_comms = [ LogIn(hosts) ]
+    log_in_comms.append(HelpCommand(log_in_comms))
+
+    log_in_repl(log_in_comms)
+    repl(comms)
 
 
 if __name__ == '__main__':
