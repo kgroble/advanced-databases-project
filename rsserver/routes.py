@@ -30,18 +30,20 @@ mongoDB = mongoConn.relational_schema
 redis_conn = redis.Redis()
 
 
-extra_super_secret = 'hello my name is coleman and I am the coolest'
+
+def not_logged_in():
+    return jsonify({}), status.HTTP_401_UNAUTHORIZED
+
 
 
 @app.route('/login/', methods=['POST'])
 def login():
     data = request.get_json()
     username = data['username']
-    password = data['hashed_password']
-    if user_controller.log_in(username, password, mongoDB, redis_conn):
+    key = data['key']
+    if user_controller.log_in(username, key, mongoDB, redis_conn):
         return jsonify({}), status.HTTP_204_NO_CONTENT
-    return jsonify({}), status.HTTP_401_UNAUTHORIZED
-
+    return not_logged_in()
 
 
 @app.route('/logout/', methods=['POST'])
@@ -55,7 +57,8 @@ def logout():
 @app.route('/users/', methods=['GET'])
 def users():
     username = request.args.get('username')
-    if not logged_in(username, key):
+    key = request.args.get('key')
+    if not user_controller.is_logged_in(username, key, redis_conn):
         return not_logged_in()
     if (request.method == 'GET'):
         return user_controller.getUsers(mongoDB)
@@ -64,7 +67,8 @@ def users():
 @app.route('/questions/', methods=['GET'])
 def questions():
     username = request.args.get('username')
-    if not logged_in(username, key):
+    key = request.args.get('key')
+    if not user_controller.is_logged_in(username, key, redis_conn):
         return not_logged_in()
     if (request.method == 'GET'):
         return question_controller.getQuestions(mongoDB)
@@ -73,15 +77,17 @@ def questions():
 @app.route('/user/<username>/', methods=['GET', 'PATCH'])
 def specific_user(username):
     if request.method == 'GET':
-        if not logged_in(username, key):
+        key = request.args.get('key')
+        auth_user = request.args.get('username')
+        if not user_controller.is_logged_in(auth_user, key, redis_conn):
             return not_logged_in()
         user = user_controller.get_user(arangoDB, mongoDB, username)
         if user == None:
             stat = status.HTTP_404_NOT_FOUND
             jsn = jsonify({'error': 'User not found.'})
         else:
-            # user['_id'] = str(user['_id'])
             stat = status.HTTP_200_OK
+            del user['password']
             jsn = jsonify(user)
         return jsn, stat
     elif request.method == 'PATCH':

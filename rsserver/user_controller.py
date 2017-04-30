@@ -19,14 +19,22 @@ class UserGraph(Graph):
 def is_logged_in(username, key, redis_conn):
     if not redis_conn.hexists(user_hashes, username):
         return False
-    hashed = redisConn.hget(user_hashes, username)
+    hashed = redis_conn.hget(user_hashes, username).decode()
     return hashed == key
 
 
 def log_in(username, hpw, mongo_conn, redis_conn):
     user_doc = mongo_conn.users.find_one({'uname': username})
     if bcrypt.checkpw(hpw.encode(), user_doc['password'].encode()):
+        # this should be set to a random key and returned to the user
         redis_conn.hset(user_hashes, username, hpw)
+        return True
+    return False
+
+
+def log_out(username, key, redis_conn):
+    if is_logged_in(username, key, redis_conn):
+        redis_conn.hdel(user_hashes, username)
         return True
     return False
 
@@ -52,6 +60,7 @@ def getUsers(db):
     for u in users:
         userArray.append(u)
     return jsonify(userArray), status.HTTP_200_OK
+
 
 def updateUserAttributes(mongo, uname, data):
     mongo.users.update_one({'uname' : uname}, {'$set': data}, upsert=True)

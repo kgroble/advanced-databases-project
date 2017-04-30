@@ -13,16 +13,21 @@ def log_in_repl(comms):
         first, *rest = words
         command = get_command(first, comms)
 
-        res = command.run(rest)
-        if res == True:
-            break
-        if res == False:
-            print('Operation not successful')
-        else:
+        try:
+            res = command.run(rest)
+        except WrongCredentials:
+            print('Incorrect credentials.')
+            continue
+
+        try: # This is for sure not the best way to do this
+            uname, key = res
+            return uname, key
+        except ValueError:
             print(res)
+            continue
 
 
-def repl(comms):
+def repl(comms, uname, key):
     while True:
         inp = input('--> ')
         words = inp.split()
@@ -32,7 +37,7 @@ def repl(comms):
         first, *rest = words
         command = get_command(first, comms)
         try:
-            out = command.run(rest, '', '')
+            out = command.run(rest, uname, key)
             print(out)
         except WrongNumberArguments:
             print('Wrong number of arguments.')
@@ -55,8 +60,8 @@ def main():
     log_in_comms = [ LogIn(hosts) ]
     log_in_comms.append(HelpCommand(log_in_comms))
 
-    log_in_repl(log_in_comms)
-    repl(comms)
+    uname, key = log_in_repl(log_in_comms)
+    repl(comms, uname, key)
 
 
 if __name__ == '__main__':

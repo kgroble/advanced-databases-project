@@ -33,8 +33,14 @@ class User:
 
 
 class Question:
-    def __init__(self):
-        pass
+    def __init__(self, text, possible_answers):
+        self.text = text
+        self.answers = possible_answers
+    def __str__(self):
+        s = self.text
+        for x in self.answers:
+            s += '\n - ' + x['label']
+        return s
 
 
 """
@@ -48,13 +54,14 @@ def is_logged_in(username, key):
 def log_in(username, unsafe_password, hosts):
     h = hashlib.sha256()
     h.update(unsafe_password.encode())
+    pw = h.hexdigest()
     result = make_post({'username': username,
-                        'hashed_password': h.hexdigest()},
+                        'key': pw},
                        '/login/',
                        hosts)
     try:
         result.raise_for_status()
-        return True
+        return username, pw
     except:
         return False
 
@@ -71,7 +78,8 @@ def create_user(username, hosts):
 
 
 def get_user(username, hosts, auth_user, key):
-    usr = make_get({},
+    usr = make_get({'username': auth_user,
+                    'key': key},
                    '/user/' + username,
                    hosts)
     if usr == None:
@@ -79,6 +87,7 @@ def get_user(username, hosts, auth_user, key):
     data = usr.json()
     if not 'uname' in data:
         raise UserDoesNotExist('User does not exist.')
+    print(data)
     username = data['uname']
     return User(username)
 
@@ -114,9 +123,8 @@ def get_questions(hosts, auth_user, key):
                      'key': key},
                     '/questions/',
                     hosts)
-    if not 'uname' in data.json():
-        raise UserDoesNotExist('User does not exist.')
-    return data.json()
+    qs = map(question_from_json, data.json())
+    return list(filter(lambda x: x != None, qs))
 
 
 """
@@ -129,6 +137,16 @@ def user_from_json(json):
         return None
     username = json['uname']
     return User(username)
+
+
+def question_from_json(json):
+    if not 'text' in json:
+        return None
+    if not 'options' in json:
+        return None
+    q = Question(json['text'],
+                 json['options'])
+    return q
 
 
 def make_post(data, path, hosts, headers=headers):

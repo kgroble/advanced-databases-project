@@ -10,8 +10,10 @@ EXCEPTIONS
 """
 
 class WrongNumberArguments(Exception):
-    def __init__(self, msg):
-        pass
+    pass
+
+class WrongCredentials(Exception):
+    pass
 
 """
 COMMANDS
@@ -42,8 +44,8 @@ class CommandNotFound(Command):
     def __init__(self):
         super(CommandNotFound, self).__init__([])
         self.name = 'command-not-found'
-    def run(self, args_list, auth_user, key):
-        return "Command not found."
+    def run(self, *_):
+        return 'Command not found. Try running "help"'
 
 
 class GetUser(Command):
@@ -86,14 +88,15 @@ class GetQuestions(Command):
         if len(args_list) != 0:
             raise WrongNumberArguments('Command takes no arguments.')
         qs = api.get_questions(self._hosts, auth_user, key)
-        return qs
+        s = reduce(lambda a, b: str(a) + '\n' + str(b), qs)
+        return s
     def get_usage(self):
         return ''
 
 
 class GetQuestion(Command):
     def __init__(self, hosts):
-        super(GetQuestions, self).__init__(hosts)
+        super(GetQuestion, self).__init__(hosts)
         self.name = 'get-question'
     def run(self, args_list, auth_user, key):
         if len(args_list) != 1:
@@ -142,6 +145,8 @@ class LogIn(LogInCommand):
         uname = input('Username: ')
         unsafe_password = getpass.getpass()
         success = api.log_in(uname, unsafe_password, self._hosts)
+        if not success:
+            raise WrongCredentials('Credentials were incorrect')
         return success
     def get_usage(self):
         return ''
