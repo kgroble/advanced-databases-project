@@ -4,26 +4,31 @@ from flask import Flask, abort, redirect, url_for, render_template, \
 from pyArango.connection import *
 from pymongo import MongoClient
 from flask_api import status
+import socket
+
+
+arango_username = 'root'
+arango_password = 'srirammohan'
+if 'cdk' in socket.gethostname():
+    arango_url = 'http://cdk433.csse.rose-hulman.edu:8529'
+    mongo_url = 'mongodb://cdk433.csse.rose-hulman.edu:27017'
+else:
+    arango_url = 'http://127.0.0.1:8530'
+    mongo_url = 'mongodb://127.0.0.1:27017'
 
 app = Flask(__name__,
             static_url_path='/static',
             static_folder='../client/dist/')
-arangoConn = Connection(arangoURL='http://cdk433.csse.rose-hulman.edu:8529',
-                        username='root',
-                        password='srirammohan')
+arangoConn = Connection(arangoURL=arango_url,
+                        username=arango_username,
+                        password=arango_password)
 arangoDB = arangoConn['RelationalSchema']
-mongoConn = MongoClient("mongodb://cdk433.csse.rose-hulman.edu:27017", replicaset='cdk')
+mongoConn = MongoClient(mongo_url,
+                        replicaset='cdk')
 mongoDB = mongoConn.relational_schema
 
 
-def logged_in(username):
-    if username in session:
-        return False
-    return True
-
-
-def not_logged_in():
-    return redirect("/login", code=302)
+extra_super_secret = 'hello my name is coleman and I am the coolest'
 
 
 @app.route('/login/', methods=['POST'])
@@ -50,6 +55,7 @@ def users():
     if (request.method == 'GET'):
         return user_controller.getUsers(mongoDB)
 
+
 @app.route('/questions/', methods=['GET'])
 def questions():
     username = request.args.get('username')
@@ -57,6 +63,7 @@ def questions():
         return not_logged_in()
     if (request.method == 'GET'):
         return question_controller.getQuestions(mongoDB)
+
 
 @app.route('/user/<username>/', methods=['GET', 'PATCH'])
 def specific_user(username):
@@ -74,6 +81,7 @@ def specific_user(username):
         return jsn, stat
     elif request.method == 'PATCH':
         return user_controller.updateUserAttributes(mongoDB, username, request.get_json())
+
 
 @app.route('/user/<username>/answer/<code>', methods=['POST'])
 def answerQuestion(username, code):
@@ -94,10 +102,3 @@ def user():
     else:
         return jsonify(new_user._store), \
             status.HTTP_201_CREATED
-
-
-
-@app.route('/')
-@app.route('/<path:path>')
-def default(**path):
-    return send_from_directory('../client/src/', 'index.html')

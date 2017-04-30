@@ -1,17 +1,30 @@
 from pymongo import MongoClient
+import pymongo
+import socket
 
-conn = MongoClient("mongodb://cdk433.csse.rose-hulman.edu", 27017, replicaset='cdk')
+if 'cdk' in socket.gethostname():
+    mongo_url = 'mongodb://cdk433.csse.rose-hulman.edu'
+else:
+    mongo_url = 'mongodb://127.0.0.1'
+
+conn = MongoClient(mongo_url, 27017, replicaset='cdk')
 
 db = conn.relational_schema
 users = db.users
 questions = db.questions
 
-users.create_index('uname', unique = True)
+try:
+    users.create_index('uname', unique = True)
+except pymongo.errors.DuplicateKeyError:
+    pass
 
 users.delete_many({})
-users.insert_many([{'uname': 'coleman'}, {'uname': 'kieran'}])
-
 questions.delete_many({})
+
+users.insert_many([{'uname': 'coleman'},
+                   {'uname': 'kieran'},
+                   {'uname': 'derek'}])
+
 
 indentation = {'_id': 'indentation',
                'text': 'What kind of indentation do you prefer?',
@@ -23,7 +36,9 @@ editor = {'_id': 'editor',
           'options': [{'code': 'editor-emacs', 'label': 'Emacs'},
                       {'code': 'editor-vim', 'label': 'Vim'},
                       {'code': 'editor-both', 'label': 'Both'},
-                      {'code': 'editor-neither', 'label': 'Neither (Hint: This is the wrong answer. If you select this, your account will be deleted.)'}]}
+                      {'code': 'editor-neither',
+                       'label': 'Neither (Hint: This is the wrong answer. ' +
+                       'If you select this, your account will be deleted.)'}]}
 
 os = {'_id': 'os',
       'text': 'What operating system do you use?',

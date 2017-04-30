@@ -2,10 +2,16 @@ from pyArango.connection import *
 from pyArango.graph import Graph, EdgeDefinition
 from pyArango.collection import Collection, Field
 from pyArango.collection import Edges
+import socket
 
-conn = Connection(arangoURL='http://cdk433.csse.rose-hulman.edu:8529',
-                  username='root',
-                  password='srirammohan')
+if 'cdk' in socket.gethostname():
+    arango_url = 'http://cdk433.csse.rose-hulman.edu:8529'
+else:
+    arango_url = 'http://127.0.0.1:8530'
+
+conn = Connection(arangoURL=arango_url,
+            username='root',
+            password='srirammohan')
 
 # Creating/getting the database
 try:
