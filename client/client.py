@@ -2,6 +2,12 @@
 from commands import *
 
 
+def log_in(hosts):
+    uname = input('username: ')
+    password = input('password: ')
+
+
+
 def repl(hosts, comms):
     while True:
         inp = input('--> ')
@@ -20,10 +26,12 @@ def repl(hosts, comms):
 
 
 def main():
-    # hosts = [ 'http://cdk433.csse.rose-hulman.edu',
-    #           'http://cdk434.csse.rose-hulman.edu',
-    #           'http://cdk435.csse.rose-hulman.edu' ]
-    hosts = [ 'http://127.0.0.1' ]
+    if 'cdk' in socket.gethostname():
+        hosts = [ 'http://cdk433.csse.rose-hulman.edu',
+                  'http://cdk434.csse.rose-hulman.edu',
+                  'http://cdk435.csse.rose-hulman.edu' ]
+    else:
+        hosts = [ 'http://127.0.0.1' ]
 
     comms = [ GetUser(hosts),
               GetAllUsers(hosts),
