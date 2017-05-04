@@ -17,6 +17,7 @@ class UserGraph(Graph):
 
 # NOTE: These passwords are not secure
 def is_logged_in(username, key, redis_conn):
+    # return True
     if not redis_conn.hexists(user_hashes, username):
         return False
     hashed = redis_conn.hget(user_hashes, username).decode()
@@ -53,6 +54,21 @@ def get_user(arango, mongo, uname):
     user = mongo.users.find_one({'uname': uname}, projection={'_id': False})
     return user
 
+def getMatches(arango, mongo, uname):
+    uid = arango['Users'].fetchFirstExample({'uname': uname}, rawResults=True)[0]['_id']
+    aql = "FOR v IN 2..2 ANY @user GRAPH 'UserGraph' RETURN v"
+    bindVars = {'user': uid}
+    query = arango.AQLQuery(aql, bindVars = bindVars)
+
+    matches = {}
+    for u in query:
+        other = u['uname']
+        if other in matches:
+            matches[other] = matches[other] + 1
+        else:
+            matches[other] = 1
+
+    return jsonify(matches), status.HTTP_200_OK
 
 def getUsers(db):
     users = db.users.find(projection={'_id': False})

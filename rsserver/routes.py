@@ -13,9 +13,13 @@ arango_password = 'srirammohan'
 if 'cdk' in socket.gethostname():
     arango_url = 'http://cdk433.csse.rose-hulman.edu:8529'
     mongo_url = 'mongodb://cdk433.csse.rose-hulman.edu:27017'
+    mongoConn = MongoClient(mongo_url,
+                        replicaset='cdk')
 else:
-    arango_url = 'http://127.0.0.1:8530'
+    arango_url = 'http://127.0.0.1:8529'
     mongo_url = 'mongodb://127.0.0.1:27017'
+    mongoConn = MongoClient(mongo_url)
+
 
 app = Flask(__name__,
             static_url_path='/static',
@@ -24,8 +28,8 @@ arangoConn = Connection(arangoURL=arango_url,
                         username=arango_username,
                         password=arango_password)
 arangoDB = arangoConn['RelationalSchema']
-mongoConn = MongoClient(mongo_url,
-                        replicaset='cdk')
+# mongoConn = MongoClient(mongo_url,
+#                         replicaset='cdk')
 mongoDB = mongoConn.relational_schema
 redis_conn = redis.Redis()
 
@@ -95,6 +99,16 @@ def specific_user(username):
                                                     username,
                                                     request.get_json())
 
+@app.route('/user/<username>/matches/', methods=['GET'])
+def matches(username):
+    print(username)
+    auth_user = request.args.get('username')
+    key = request.args.get('key')
+    if not user_controller.is_logged_in(auth_user, key, redis_conn):
+        return not_logged_in()
+    if (request.method == 'GET'):
+        print(username)
+        return user_controller.getMatches(arangoDB, mongoDB, username)
 
 @app.route('/user/<username>/answer/<code>', methods=['POST'])
 def answerQuestion(username, code):

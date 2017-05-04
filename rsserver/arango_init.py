@@ -7,7 +7,7 @@ import socket
 if 'cdk' in socket.gethostname():
     arango_url = 'http://cdk433.csse.rose-hulman.edu:8529'
 else:
-    arango_url = 'http://127.0.0.1:8530'
+    arango_url = 'http://127.0.0.1:8529'
 
 conn = Connection(arangoURL=arango_url,
             username='root',
@@ -58,14 +58,18 @@ c = g.createVertex('Users', {'uname': 'coleman'})
 k = g.createVertex('Users', {'uname': 'kieran'})
 tabs = g.createVertex('Response', {'code': 'indentation-tabs'})
 spaces = g.createVertex('Response', {'code': 'indentation-spaces'})
-g.createVertex('Response', {'code': 'editor-emacs'})
-g.createVertex('Response', {'code': 'editor-vim'})
-g.createVertex('Response', {'code': 'editor-both'})
-g.createVertex('Response', {'code': 'editor-neither'})
-g.createVertex('Response', {'code': 'os-linux'})
-g.createVertex('Response', {'code': 'os-osx'})
-g.createVertex('Response', {'code': 'os-windows'})
-g.createVertex('Response', {'code': 'os-other'})
+emacs = g.createVertex('Response', {'code': 'editor-emacs'})
+vim = g.createVertex('Response', {'code': 'editor-vim'})
+both = g.createVertex('Response', {'code': 'editor-both'})
+neither = g.createVertex('Response', {'code': 'editor-neither'})
+linux = g.createVertex('Response', {'code': 'os-linux'})
+osx = g.createVertex('Response', {'code': 'os-osx'})
+windows = g.createVertex('Response', {'code': 'os-windows'})
+other = g.createVertex('Response', {'code': 'os-other'})
 g.link('Answer', c, spaces, {})
 g.link('Answer', k, tabs, {})
-g.link('Match', c, k, {'strength': 9999})
+g.link('Answer', c, both, {})
+g.link('Answer', k, both, {})
+g.link('Answer', c, linux, {})
+g.link('Answer', k, linux, {})
+# g.link('Match', c, k, {'strength': 9999})

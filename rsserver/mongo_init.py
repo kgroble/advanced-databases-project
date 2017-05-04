@@ -6,10 +6,11 @@ import bcrypt
 
 if 'cdk' in socket.gethostname():
     mongo_url = 'mongodb://cdk433.csse.rose-hulman.edu'
+    conn = MongoClient(mongo_url, 27017, replicaset='cdk')
 else:
     mongo_url = 'mongodb://127.0.0.1'
+    conn = MongoClient(mongo_url, 27017)
 
-conn = MongoClient(mongo_url, 27017, replicaset='cdk')
 
 db = conn.relational_schema
 users = db.users
