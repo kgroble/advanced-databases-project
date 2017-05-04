@@ -44,7 +44,8 @@ def repl(comms, uname, key):
 
 
 def main():
-    if 'cdk' in socket.gethostname():
+    remote_mode = False
+    if 'cdk' in socket.gethostname() or remote_mode:
         hosts = [ 'http://cdk433.csse.rose-hulman.edu',
                   'http://cdk434.csse.rose-hulman.edu',
                   'http://cdk435.csse.rose-hulman.edu' ]
@@ -54,10 +55,12 @@ def main():
     comms = [ GetUser(hosts),
               GetAllUsers(hosts),
               GetQuestions(hosts),
+              GetQuestion(hosts),
               AnswerQuestion(hosts) ]
     comms.append(HelpCommand(comms))
 
-    log_in_comms = [ LogIn(hosts) ]
+    log_in_comms = [ LogIn(hosts),
+                     CreateUser(hosts) ]
     log_in_comms.append(HelpCommand(log_in_comms))
 
     uname, key = log_in_repl(log_in_comms)

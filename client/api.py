@@ -17,30 +17,47 @@ EXCEPTIONS
 class UserDoesNotExist(Exception):
     pass
 
+class UserAlreadyExists(Exception):
+    pass
+
 
 """
 CLASSES
 """
 
 class User:
-    def __init__(self, username):
+    def __init__(self, username, answers):
         self.username = username
+        self.answers = answers
     def to_json(self):
         pass
     def __str__(self):
-        s  = 'Username: ' + self.username
+        s = 'Username: ' + self.username
+        s += '\nAnswers:'
+        for a in self.answers:
+            s += '\n - ' + str(a)
         return s
 
 
 class Question:
-    def __init__(self, text, possible_answers):
+    def __init__(self, name, text, possible_answers):
+        self.name = name
         self.text = text
         self.answers = possible_answers
+    def get_title(self):
+        return '(%s) %s' % (self.name, self.text)
     def __str__(self):
-        s = self.text
+        s = self.get_title()
         for x in self.answers:
-            s += '\n - ' + x['label']
+            s += '\n - %s: %s' % (x['label'],x['code'])
         return s
+
+
+class Answer:
+    def __init__(self, code):
+        self.code = code
+    def __str__(self):
+        return self.code
 
 
 """
@@ -70,10 +87,18 @@ def logout(username, key):
     return True
 
 
-def create_user(username, hosts):
-    make_post({'username': username},
-              '/users/',
-              hosts)
+def create_user(username, unsafe_password, hosts):
+    h = hashlib.sha256()
+    h.update(unsafe_password.encode())
+    hashed_pw = h.hexdigest() # this should just
+    pw = bcrypt.hashpw(hashed_pw.encode(), bcrypt.gensalt()).decode()
+    result = make_post({'username': username,
+                        'password': pw
+                        },
+                       '/user/',
+                       hosts)
+    if not result:
+        raise UserAlreadyExists('User already exists.')
     return True
 
 
@@ -87,9 +112,9 @@ def get_user(username, hosts, auth_user, key):
     data = usr.json()
     if not 'uname' in data:
         raise UserDoesNotExist('User does not exist.')
-    print(data)
     username = data['uname']
-    return User(username)
+    answers = list(map(answer_from_document, data['answers']))
+    return User(username, answers)
 
 
 def get_users(hosts, auth_user, key):
@@ -101,12 +126,11 @@ def get_users(hosts, auth_user, key):
     return users
 
 
-
 """
 QUESTION API
 """
 
-def answer_question(username, code, hosts, auth_user, key):
+def answer_question(username, code, hosts, auth_user, key) -> 'A boolean value':
     resp = make_post({'username': username,
                       'key': key},
                      '/user/' + username + '/answer/' + code,
@@ -118,7 +142,7 @@ def answer_question(username, code, hosts, auth_user, key):
         return False
 
 
-def get_questions(hosts, auth_user, key):
+def get_questions(hosts, auth_user, key) -> 'A list of question objects':
     data = make_get({'username': auth_user,
                      'key': key},
                     '/questions/',
@@ -130,6 +154,12 @@ def get_questions(hosts, auth_user, key):
 """
 HELPERS
 """
+
+
+def answer_from_document(json):
+    if not 'code' in json:
+        return None
+    return Answer(json['code'])
 
 
 def user_from_json(json):
@@ -144,7 +174,10 @@ def question_from_json(json):
         return None
     if not 'options' in json:
         return None
-    q = Question(json['text'],
+    if not '_id' in json:
+        return None
+    q = Question(json['_id'],
+                 json['text'],
                  json['options'])
     return q
 
