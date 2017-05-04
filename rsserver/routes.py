@@ -96,7 +96,6 @@ def specific_user(username):
             jsn = jsonify({'error': 'User not found.'})
         else:
             stat = status.HTTP_200_OK
-            del user['password']
             jsn = jsonify(user)
         return jsn, stat
 

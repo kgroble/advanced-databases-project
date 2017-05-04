@@ -26,12 +26,16 @@ CLASSES
 """
 
 class User:
-    def __init__(self, username):
+    def __init__(self, username, answers):
         self.username = username
+        self.answers = answers
     def to_json(self):
         pass
     def __str__(self):
-        s  = 'Username: ' + self.username
+        s = 'Username: ' + self.username
+        s += '\nAnswers:'
+        for a in self.answers:
+            s += '\n - ' + str(a)
         return s
 
 
@@ -47,6 +51,13 @@ class Question:
         for x in self.answers:
             s += '\n - %s: %s' % (x['label'],x['code'])
         return s
+
+
+class Answer:
+    def __init__(self, code):
+        self.code = code
+    def __str__(self):
+        return self.code
 
 
 """
@@ -102,7 +113,8 @@ def get_user(username, hosts, auth_user, key):
     if not 'uname' in data:
         raise UserDoesNotExist('User does not exist.')
     username = data['uname']
-    return User(username)
+    answers = list(map(answer_from_document, data['answers']))
+    return User(username, answers)
 
 
 def get_users(hosts, auth_user, key):
@@ -142,6 +154,12 @@ def get_questions(hosts, auth_user, key) -> 'A list of question objects':
 """
 HELPERS
 """
+
+
+def answer_from_document(json):
+    if not 'code' in json:
+        return None
+    return Answer(json['code'])
 
 
 def user_from_json(json):
