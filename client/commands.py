@@ -2,7 +2,6 @@
 import api
 from functools import reduce
 import getpass
-import bcrypt
 
 
 """
@@ -21,6 +20,10 @@ COMMANDS
 
 
 class LogInCommand(object):
+    """
+    Note that this is not a command to log in, but the super class for commands
+    which are presented at log in.
+    """
     def __init__(self, hosts):
         self._hosts = hosts
     def run(self, args_list):
@@ -150,6 +153,31 @@ class LogIn(LogInCommand):
         return success
     def get_usage(self):
         return ''
+
+
+class CreateUser(LogInCommand):
+    def __init__(self, hosts):
+        super(CreateUser, self).__init__(hosts)
+        self.name = 'create-user'
+    def run(self, args_list):
+        uname = input('Username: ')
+        while True:
+            unsafe_pw = getpass.getpass()
+            unsafe_pw1 = getpass.getpass('Enter it again: ')
+            if unsafe_pw == unsafe_pw1:
+                break
+            else:
+                print('Passwords do not match')
+        try:
+            res = api.create_user(uname, unsafe_pw, self._hosts)
+            print(res)
+        except api.UserAlreadyExists:
+            return 'User already exists.'
+        res = api.log_in(uname, unsafe_pw, self._hosts)
+        return res
+    def get_usage(self):
+        return ''
+
 
 
 

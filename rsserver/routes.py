@@ -30,10 +30,18 @@ mongoDB = mongoConn.relational_schema
 redis_conn = redis.Redis()
 
 
+"""
+HELPER FUNCTIONS
+"""
+
 
 def not_logged_in():
     return jsonify({}), status.HTTP_401_UNAUTHORIZED
 
+
+"""
+API ENDPOINTS
+"""
 
 
 @app.route('/login/', methods=['POST'])
@@ -50,7 +58,6 @@ def login():
 def logout():
     data = request.get_json()
     username = data['username']
-    del session['username']
     return jsonify({'username': username}), status.HTTP_200_OK
 
 
@@ -76,11 +83,13 @@ def questions():
 
 @app.route('/user/<username>/', methods=['GET', 'PATCH'])
 def specific_user(username):
+    # testing credentials
+    key = request.args.get('key')
+    auth_user = request.args.get('username')
+    if not user_controller.is_logged_in(auth_user, key, redis_conn):
+        return not_logged_in()
+
     if request.method == 'GET':
-        key = request.args.get('key')
-        auth_user = request.args.get('username')
-        if not user_controller.is_logged_in(auth_user, key, redis_conn):
-            return not_logged_in()
         user = user_controller.get_user(arangoDB, mongoDB, username)
         if user == None:
             stat = status.HTTP_404_NOT_FOUND
@@ -90,6 +99,7 @@ def specific_user(username):
             del user['password']
             jsn = jsonify(user)
         return jsn, stat
+
     elif request.method == 'PATCH':
         return user_controller.updateUserAttributes(mongoDB,
                                                     username,
@@ -110,9 +120,11 @@ def answerQuestion(username, code):
 def user():
     data = request.get_json(force=True)
     username = data['username']
+    password = data['password']
     new_user = user_controller.createUser(arangoDB,
                                           mongoDB,
-                                          username)
+                                          username,
+                                          password)
     if not new_user:
         return jsonify({'error': 'User already exists.'}), \
             status.HTTP_400_BAD_REQUEST

@@ -39,17 +39,25 @@ def log_out(username, key, redis_conn):
     return False
 
 
-def createUser(arangoDB, mongoDB, uname):
+def createUser(arangoDB, mongoDB, uname, password):
     userGraph = arangoDB.graphs['UserGraph']
     try:
-        newUser = userGraph.createVertex('Users', {'uname': uname})
-        mongoUser = mongoDB.users.insert_one({'uname': uname})
+        newUser = userGraph.createVertex('Users',
+                                         {'uname': uname})
+        mongoUser = mongoDB.users.insert_one({'uname': uname,
+                                              'password': password})
         return newUser
     except CreationError:
         return False
 
 
 def get_user(arango, mongo, uname):
+    userGraph = arango.graphs['UserGraph']
+    users = arango['Users']
+    responses = arango['Response']
+    answers = arango['Answer']
+    user = users.fetchFirstExample({'uname': uname})
+    response = responses.fetchFirstExample({'uname': uname})
     user = mongo.users.find_one({'uname': uname}, projection={'_id': False})
     return user
 

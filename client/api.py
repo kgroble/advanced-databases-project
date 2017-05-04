@@ -17,6 +17,9 @@ EXCEPTIONS
 class UserDoesNotExist(Exception):
     pass
 
+class UserAlreadyExists(Exception):
+    pass
+
 
 """
 CLASSES
@@ -70,10 +73,18 @@ def logout(username, key):
     return True
 
 
-def create_user(username, hosts):
-    make_post({'username': username},
-              '/users/',
-              hosts)
+def create_user(username, unsafe_password, hosts):
+    h = hashlib.sha256()
+    h.update(unsafe_password.encode())
+    hashed_pw = h.hexdigest() # this should just
+    pw = bcrypt.hashpw(hashed_pw.encode(), bcrypt.gensalt()).decode()
+    result = make_post({'username': username,
+                        'password': pw
+                        },
+                       '/user/',
+                       hosts)
+    if not result:
+        raise UserAlreadyExists('User already exists.')
     return True
 
 
@@ -87,7 +98,6 @@ def get_user(username, hosts, auth_user, key):
     data = usr.json()
     if not 'uname' in data:
         raise UserDoesNotExist('User does not exist.')
-    print(data)
     username = data['uname']
     return User(username)
 
@@ -99,7 +109,6 @@ def get_users(hosts, auth_user, key):
                           hosts)
     users = filter(lambda x: x != None, map(user_from_json, users_data.json()))
     return users
-
 
 
 """
