@@ -117,12 +117,12 @@ def get_user(username, hosts, auth_user, key):
     return User(username, answers)
 
 
-def get_users(hosts, auth_user, key):
+def get_usernames(hosts, auth_user, key):
     users_data = make_get({'username': auth_user,
                            'key': key},
                           '/users/',
                           hosts)
-    users = filter(lambda x: x != None, map(user_from_json, users_data.json()))
+    users = map(lambda x: x['uname'], users_data.json())
     return users
 
 

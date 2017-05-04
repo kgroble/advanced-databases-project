@@ -72,10 +72,9 @@ class GetAllUsers(Command):
         self.name = 'get-all-users'
     def run(self, args_list, auth_user, key):
         if len(args_list) != 0:
-            raise WrongNumberArguments("Command takes no arguments.")
-        users = api.get_users(self._hosts, auth_user, key)
-        susers = map(lambda x: str(x), users)
-        s = reduce(lambda a, b: a + '\n' + b, susers)
+            raise WrongNumberArguments('Command takes no arguments.')
+        users = api.get_usernames(self._hosts, auth_user, key)
+        s = reduce(lambda a, b: a + '\n' + b, users)
         return s
     def get_usage(self):
         return ''
