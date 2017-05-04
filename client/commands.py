@@ -26,20 +26,18 @@ class LogInCommand(object):
     """
     def __init__(self, hosts):
         self._hosts = hosts
-    def run(self, args_list):
+    def run(self, args_list) -> 'An error string or a username, key pair':
         raise NotImplemented('"run" has not been implemented.')
-    def get_usage(self):
+    def get_usage(self) -> 'String indicating command usage':
         raise NotImplemented('"get_usage" has not been implemented')
 
 
 class Command(object):
     def __init__(self, hosts):
         self._hosts = hosts
-
-    def run(self, args_list, user, key):
+    def run(self, args_list, user, key) -> 'A string':
         raise NotImplemented('"run" has not been implemented.')
-
-    def get_usage(self):
+    def get_usage(self) -> 'String indicating command usage':
         raise NotImplemented('"get_usage" has not been implemented')
 
 
@@ -91,7 +89,11 @@ class GetQuestions(Command):
         if len(args_list) != 0:
             raise WrongNumberArguments('Command takes no arguments.')
         qs = api.get_questions(self._hosts, auth_user, key)
-        s = reduce(lambda a, b: str(a) + '\n' + str(b), qs)
+        if len(qs) == 0:
+            return 'There are currently no questions to answer.'
+        s = qs[0].get_title()
+        for q in qs[1:]:
+            s += '\n' + q.get_title()
         return s
     def get_usage(self):
         return ''
@@ -103,9 +105,12 @@ class GetQuestion(Command):
         self.name = 'get-question'
     def run(self, args_list, auth_user, key):
         if len(args_list) != 1:
-            raise WrongNumberArguments('Command takes no arguments.')
-        q = api.get_question(self._hosts, auth_user, key)
-        return q
+            raise WrongNumberArguments('Command takes one argument.')
+        name = args_list[0]
+        qs = api.get_questions(self._hosts, auth_user, key)
+        q = list(filter(lambda x: x.name == name,
+                        qs))[0]
+        return str(q)
     def get_usage(self):
         return '<question-id>'
 
@@ -116,15 +121,14 @@ class AnswerQuestion(Command):
         self.name = 'answer-question'
     def run(self, args_list, auth_user, key):
         if len(args_list) != 2:
-            raise WrongNumberArguments('Should be giving two arguments.')
-        username = args_list[0]
+            raise WrongNumberArguments('Should be given two arguments')
         code = args_list[1]
-        resp = api.answer_question(username, code, self._hosts, auth_user, key)
+        resp = api.answer_question(auth_user, code, self._hosts, auth_user, key)
         if resp:
             return 'Success.'
         return 'Fail!'
     def get_usage(self):
-        return '<username> <code>'
+        return '<question-name> <answer-code>'
 
 
 class HelpCommand(Command):

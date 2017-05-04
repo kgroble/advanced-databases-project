@@ -36,13 +36,16 @@ class User:
 
 
 class Question:
-    def __init__(self, text, possible_answers):
+    def __init__(self, name, text, possible_answers):
+        self.name = name
         self.text = text
         self.answers = possible_answers
+    def get_title(self):
+        return '(%s) %s' % (self.name, self.text)
     def __str__(self):
-        s = self.text
+        s = self.get_title()
         for x in self.answers:
-            s += '\n - ' + x['label']
+            s += '\n - %s: %s' % (x['label'],x['code'])
         return s
 
 
@@ -115,7 +118,7 @@ def get_users(hosts, auth_user, key):
 QUESTION API
 """
 
-def answer_question(username, code, hosts, auth_user, key):
+def answer_question(username, code, hosts, auth_user, key) -> 'A boolean value':
     resp = make_post({'username': username,
                       'key': key},
                      '/user/' + username + '/answer/' + code,
@@ -127,7 +130,7 @@ def answer_question(username, code, hosts, auth_user, key):
         return False
 
 
-def get_questions(hosts, auth_user, key):
+def get_questions(hosts, auth_user, key) -> 'A list of question objects':
     data = make_get({'username': auth_user,
                      'key': key},
                     '/questions/',
@@ -153,7 +156,10 @@ def question_from_json(json):
         return None
     if not 'options' in json:
         return None
-    q = Question(json['text'],
+    if not '_id' in json:
+        return None
+    q = Question(json['_id'],
+                 json['text'],
                  json['options'])
     return q
 

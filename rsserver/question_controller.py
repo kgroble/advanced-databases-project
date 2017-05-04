@@ -28,7 +28,7 @@ class UserGraph(Graph):
     _orphanedCollections = []
 
 def getQuestions(mongo):
-    questions = mongo.questions.find(projection={'_id': False})
+    questions = mongo.questions.find()
     questionArray = []
     for q in questions:
         questionArray.append(q)

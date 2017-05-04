@@ -55,6 +55,7 @@ def main():
     comms = [ GetUser(hosts),
               GetAllUsers(hosts),
               GetQuestions(hosts),
+              GetQuestion(hosts),
               AnswerQuestion(hosts) ]
     comms.append(HelpCommand(comms))
 

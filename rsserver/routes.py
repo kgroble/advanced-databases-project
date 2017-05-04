@@ -108,8 +108,11 @@ def specific_user(username):
 
 @app.route('/user/<username>/answer/<code>', methods=['POST'])
 def answerQuestion(username, code):
+    data = request.get_json()
+    auth_user = data['username']
+    key = data['key']
     if request.method == 'POST':
-        if not logged_in(username, key):
+        if not user_controller.is_logged_in(username, key, redis_conn):
             return not_logged_in()
         return question_controller.setAnswer(arangoDB,
                                              username,
