@@ -52,7 +52,16 @@ class UserGraph(Graph):
                                        toCollections = ['Question'])]
     _orphanedCollections = []
 
+
 # Creating collections
+for graph in db.graphs:
+    db.graphs[graph].delete()
+
+for coll in db.collections:
+    if not(coll[0] == '_'):
+        db[coll].delete()
+
+
 db.createCollection('Users')
 db.createCollection('Match')
 db.createCollection('Response')
