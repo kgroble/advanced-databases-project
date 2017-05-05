@@ -139,11 +139,20 @@ class GetMatches(Command):
     def __init__(self, hosts):
         super(GetMatches, self).__init__(hosts)
         self.name = 'get-matches'
-    def run(self, args_list, auth_user, key):
+    def run(self, args_list, auth_user, key) -> 'Will only return the top 5':
         if len(args_list) != 0:
             raise WrongNumberArguments('Command takes no arguments')
         resp = api.get_matches(self._hosts, auth_user, key)
-        return resp
+        matches = []
+        for k in resp:
+            matches.append((k, resp[k]))
+        best_matches = list(map(lambda x: x[0],
+                                sorted(matches,
+                                       key=lambda x: -x[1])))[:5]
+        s = '\n'
+        for x in best_matches:
+            s += '\n' + x
+        return s
     def get_usage(self):
         return ''
 
