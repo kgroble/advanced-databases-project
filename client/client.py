@@ -3,6 +3,23 @@ from commands import *
 import socket
 
 
+startmsg = \
+"    - -      - - -\n" + \
+"  /     \\  /        \ \n" + \
+"/        \\/          \ \n" + \
+"\\                    / \n" + \
+" \\                  / \n" + \
+"  \\       cs       / \n" + \
+"   \\              / \n" + \
+"    \\            / \n" + \
+"     \\          / \n" + \
+"      \\        / \n" + \
+"       \\      / \n" + \
+"        \\    / \n" + \
+"         \\  / \n" + \
+"          \\/ "
+
+
 def log_in_repl(comms):
     while True:
         inp = input('--> ')
@@ -75,6 +92,9 @@ def main():
                      ExitCommand(),
                      CreateUser(hosts) ]
     log_in_comms.append(HelpCommand(log_in_comms))
+
+    print(startmsg)
+    print('Run "help" for a list of valid commands.')
 
     res = log_in_repl(log_in_comms)
     if res:
