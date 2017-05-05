@@ -17,7 +17,6 @@ class UserGraph(Graph):
     _orphanedCollections = []
 
 
-# NOTE: These passwords are not secure
 def is_logged_in(username, key, redis_conn):
     # return True
     if not redis_conn.hexists(user_hashes, username):
@@ -71,7 +70,8 @@ def get_user(arango, mongo, uname):
     return user
 
 def getMatches(arango, mongo, uname):
-    uid = arango['Users'].fetchFirstExample({'uname': uname}, rawResults=True)[0]['_id']
+    uid = arango['Users'].fetchFirstExample({'uname': uname},
+                                            rawResults=True)[0]['_id']
     aql = "FOR v IN 2..2 ANY @user GRAPH 'UserGraph' RETURN v"
     bindVars = {'user': uid}
     query = arango.AQLQuery(aql, bindVars = bindVars)
