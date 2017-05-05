@@ -2,6 +2,7 @@
 import requests as req
 import bcrypt
 import hashlib
+import json
 
 
 """
@@ -45,7 +46,7 @@ class User:
         for a in self.answers:
             s += '\n - ' + str(a)
         for k in self.attrs:
-            s += '\n' + k + ': ' + self.attrs[k]
+            s += '\n' + k + ': ' + str(self.attrs[k])
         return s
 
 
@@ -110,13 +111,15 @@ def logout(username, key):
     return True
 
 
-def create_user(username, unsafe_password, hosts):
+def create_user(username, name, description, unsafe_password, hosts):
     h = hashlib.sha256()
     h.update(unsafe_password.encode())
     hashed_pw = h.hexdigest() # this should just
     pw = bcrypt.hashpw(hashed_pw.encode(), bcrypt.gensalt()).decode()
     result = make_post({'username': username,
-                        'password': pw
+                        'password': pw,
+                        'name': name,
+                        'description': description
                         },
                        '/user/',
                        hosts)
@@ -137,9 +140,9 @@ def get_user(username, hosts, auth_user, key):
     if not 'uname' in data:
         raise UserDoesNotExist('User does not exist.')
     if not 'name' in data:
-        raise InvalidUser('User is not valid')
+        raise InvalidUser('User does not have a name.')
     if not 'description' in data:
-        raise InvalidUser('User is not valid')
+        raise InvalidUser('User does not have a description.')
 
     uname = data['uname']
     name = data['name']
@@ -175,13 +178,23 @@ def get_messages(hosts, auth_user, key):
     return list(map(message_from_json, messages))
 
 
-
 def send_message(to, body, hosts, auth_user, key):
     data = make_post({'username': auth_user,
                       'key': key,
                       'body': body},
                      '/user/%s/message/%s/' % (auth_user, to),
                      hosts)
+    return True
+
+
+def patch_attribute(attr_key, attr_val, hosts, auth_user, key, remove=False):
+    data = {'username': auth_user,
+            'key': key,
+            'remove': remove}
+    data[attr_key] = attr_val
+    resp = make_patch(data,
+                      '/user/%s/' % auth_user,
+                      hosts)
     return True
 
 
@@ -273,6 +286,21 @@ def make_post(data, path, hosts, headers=headers):
         except:
             pass
     return False
+
+
+def make_patch(data, path, hosts, headers=headers):
+    for host in hosts:
+        result = req.patch(
+            host + path,
+            data=json.dumps(data),
+            headers=headers
+        )
+        try:
+            result.raise_for_status()
+            return result
+        except:
+            pass
+
 
 
 def make_get(params, path, hosts, headers=headers):

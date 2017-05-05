@@ -178,6 +178,44 @@ class SendMessage(Command):
         return '<user>'
 
 
+class PutAttribute(Command):
+    def __init__(self, hosts):
+        super(PutAttribute, self).__init__(hosts)
+        self.name = 'put-attribute'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command does not take arguments')
+        attr_name = input('Attribute name: ')
+        val = input('Attribute value: ')
+        api.patch_attribute(attr_name,
+                            val,
+                            self._hosts,
+                            auth_user,
+                            key)
+        return 'Willing to bet that it worked. Not a lot though.'
+    def get_usage(self):
+        return ''
+
+
+class DeleteAttribute(Command):
+    def __init__(self, hosts):
+        super(DeleteAttribute, self).__init__(hosts)
+        self.name = 'delete-attribute'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command does not take arguments')
+        attr_name = input('Attribute name: ')
+        api.patch_attribute(attr_name,
+                            'dummy',
+                            self._hosts,
+                            auth_user,
+                            key,
+                            remove=True)
+        return 'Almost certain that this worked.'
+    def get_usage(self):
+        return ''
+
+
 class HelpCommand(Command):
     def __init__(self, commands):
         super(HelpCommand, self).__init__([])
@@ -219,8 +257,16 @@ class CreateUser(LogInCommand):
                 break
             else:
                 print('Passwords do not match')
+        name = input('Name: ')
+        description = input('Description: ')
         try:
-            res = api.create_user(uname, unsafe_pw, self._hosts)
+            res = api.create_user(
+                uname,
+                name,
+                description,
+                unsafe_pw,
+                self._hosts,
+            )
             print(res)
         except api.UserAlreadyExists:
             return 'User already exists.'

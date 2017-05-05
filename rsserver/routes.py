@@ -91,13 +91,11 @@ def questions():
 
 @app.route('/user/<username>/', methods=['GET', 'PATCH'])
 def specific_user(username):
-    # testing credentials
-    key = request.args.get('key')
-    auth_user = request.args.get('username')
-    if not user_controller.is_logged_in(auth_user, key, redis_conn):
-        return not_logged_in()
-
     if request.method == 'GET':
+        key = request.args.get('key')
+        auth_user = request.args.get('username')
+        if not user_controller.is_logged_in(auth_user, key, redis_conn):
+            return not_logged_in()
         user = user_controller.get_user(arangoDB, mongoDB, username)
         if user == None:
             stat = status.HTTP_404_NOT_FOUND
@@ -108,9 +106,15 @@ def specific_user(username):
         return jsn, stat
 
     elif request.method == 'PATCH':
+        data = request.get_json()
+        auth_user = data['username']
+        key = data['key']
+        if not user_controller.is_logged_in(auth_user, key, redis_conn):
+            return not_logged_in()
         return user_controller.updateUserAttributes(mongoDB,
                                                     username,
-                                                    request.get_json())
+                                                    data)
+
 
 @app.route('/user/<username>/matches/', methods=['GET'])
 def matches(username):
@@ -163,10 +167,16 @@ def user():
     data = request.get_json(force=True)
     username = data['username']
     password = data['password']
-    new_user = user_controller.createUser(arangoDB,
-                                          mongoDB,
-                                          username,
-                                          password)
+    name = data['name']
+    description = data['description']
+    new_user = user_controller.createUser(
+        username,
+        name,
+        description,
+        password,
+        arangoDB,
+        mongoDB,
+    )
     if not new_user:
         return jsonify({'error': 'User already exists.'}), \
             status.HTTP_400_BAD_REQUEST

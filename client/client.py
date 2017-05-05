@@ -57,6 +57,8 @@ def main():
               GetQuestions(hosts),
               GetQuestion(hosts),
               SendMessage(hosts),
+              PutAttribute(hosts),
+              DeleteAttribute(hosts),
               GetMessages(hosts),
               AnswerQuestion(hosts),
               GetMatches(hosts) ]

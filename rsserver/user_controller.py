@@ -1,12 +1,8 @@
 from pyArango.connection import *
 from pyArango.graph import Graph, EdgeDefinition
-from pyArango.collection import Collection, Field
-from pyArango.collection import Edges
 from flask import jsonify
 from flask_api import status
 import bcrypt
-
-import pdb
 
 user_hashes = 'hashes'
 
@@ -40,13 +36,17 @@ def log_out(username, key, redis_conn):
     return False
 
 
-def createUser(arangoDB, mongoDB, uname, password):
+def createUser(uname, name, description, password, arangoDB, mongoDB):
     userGraph = arangoDB.graphs['UserGraph']
     try:
         newUser = userGraph.createVertex('Users',
                                          {'uname': uname})
-        mongoUser = mongoDB.users.insert_one({'uname': uname,
-                                              'password': password})
+        mongoUser = mongoDB.users.insert_one({
+            'uname': uname,
+            'password': password,
+            'name': name,
+            'description': description,
+        })
         return newUser
     except CreationError:
         return False
@@ -98,8 +98,14 @@ def getUsers(db):
 
 
 def updateUserAttributes(mongo, uname, data):
-    del data['key']
-    del data['username']
-    del data['uname']
-    mongo.users.update_one({'uname' : uname}, {'$set': data}, upsert=True)
+    no_good = [ 'key', 'username', 'password', 'uname' ]
+    for x in no_good:
+        if x in data:
+            del data[x]
+    if data['remove']:
+        del data['remove']
+        mongo.users.update_one({'uname' : uname}, {'$unset': data}, upsert=True)
+    else:
+        del data['remove']
+        mongo.users.update_one({'uname' : uname}, {'$set': data}, upsert=True)
     return jsonify({}), status.HTTP_204_NO_CONTENT
