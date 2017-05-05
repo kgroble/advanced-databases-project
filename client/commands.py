@@ -14,6 +14,9 @@ class WrongNumberArguments(Exception):
 class WrongCredentials(Exception):
     pass
 
+class StopApplication(Exception):
+    pass
+
 """
 COMMANDS
 """
@@ -225,6 +228,16 @@ class HelpCommand(Command):
         help_strs = map(lambda x: x.name + ' ' + x.get_usage(),
                         sorted(self._commands, key=lambda x: x.name))
         return reduce(lambda a, b: a + '\n' + b, help_strs)
+    def get_usage(self):
+        return ''
+
+
+class ExitCommand(Command):
+    def __init__(self):
+        super(ExitCommand, self).__init__([])
+        self.name = 'exit'
+    def run(self, *_):
+        raise StopApplication('Calmly exit.')
     def get_usage(self):
         return ''
 
