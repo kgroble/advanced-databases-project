@@ -44,8 +44,8 @@ def repl(comms, uname, key):
 
 
 def main():
-    remote_mode = False
-    if 'cdk' in socket.gethostname() or remote_mode:
+    remote_mode = True
+    if remote_mode:
         hosts = [ 'http://cdk433.csse.rose-hulman.edu',
                   'http://cdk434.csse.rose-hulman.edu',
                   'http://cdk435.csse.rose-hulman.edu' ]
