@@ -145,6 +145,39 @@ class GetMatches(Command):
         return ''
 
 
+class GetMessages(Command):
+    def __init__(self, hosts):
+        super(GetMessages, self).__init__(hosts)
+        self.name = 'get-messages'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command takes no arguments')
+        ms = api.get_messages(self._hosts, auth_user, key)
+        s = ''
+        for m in ms:
+            s += '\n' + str(m) + '\n'
+        return s
+    def get_usage(self):
+        return ''
+
+
+class SendMessage(Command):
+    def __init__(self, hosts):
+        super(SendMessage, self).__init__(hosts)
+        self.name = 'send-message'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 1:
+            raise WrongNumberArguments('Need to provide a target username ' + \
+                                       'and no more.')
+        to = args_list[0]
+        body = input('Message body: ')
+
+        api.send_message(to, body, self._hosts, auth_user, key)
+        return 'Message probably sent'
+    def get_usage(self):
+        return '<user>'
+
+
 class HelpCommand(Command):
     def __init__(self, commands):
         super(HelpCommand, self).__init__([])

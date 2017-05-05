@@ -152,7 +152,11 @@ def sendMessage(username, recipient):
     if request.method == 'POST':
         if not user_controller.is_logged_in(username, key, redis_conn):
             return not_logged_in()
-        return message_controller.sendMessage(mongoDB, username, recipient, data['body'])
+        return message_controller.sendMessage(mongoDB,
+                                              username,
+                                              recipient,
+                                              data['body'])
+
 
 @app.route('/user/', methods=['POST'])
 def user():

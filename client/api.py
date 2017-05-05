@@ -70,6 +70,19 @@ class Answer:
         return self.code
 
 
+class Message:
+    def __init__(self, content, from_uname, date):
+        self.content = content
+        self.from_username = from_uname
+        self.date = date
+    def __str__(self):
+        s = ''
+        s += 'From: %s' % self.from_username
+        s += '\nDate: %s' % self.date
+        s += '\n' + self.content
+        return s
+
+
 """
 USER API
 """
@@ -121,7 +134,6 @@ def get_user(username, hosts, auth_user, key):
         raise UserDoesNotExist('User does not exist.')
 
     data = usr.json()
-    print(data)
     if not 'uname' in data:
         raise UserDoesNotExist('User does not exist.')
     if not 'name' in data:
@@ -152,6 +164,26 @@ def get_usernames(hosts, auth_user, key):
                           hosts)
     users = map(lambda x: x['uname'], users_data.json())
     return users
+
+
+def get_messages(hosts, auth_user, key):
+    data = make_get({'username': auth_user,
+                     'key': key},
+                    '/user/%s/messages/' % auth_user,
+                    hosts)
+    messages = data.json()
+    return list(map(message_from_json, messages))
+
+
+
+def send_message(to, body, hosts, auth_user, key):
+    data = make_post({'username': auth_user,
+                      'key': key,
+                      'body': body},
+                     '/user/%s/message/%s/' % (auth_user, to),
+                     hosts)
+    return True
+
 
 
 """
@@ -188,7 +220,6 @@ def get_matches(hosts, auth_user, key) -> 'A list of usernames ordered' + \
                      'key': key},
                     '/user/%s/matches/' % auth_user,
                     hosts)
-    print(resp.json())
     return resp.json()
 
 
@@ -223,6 +254,14 @@ def question_from_json(json):
                  json['text'],
                  json['options'])
     return q
+
+
+def message_from_json(json):
+    if not 'from' in json:
+        return None
+    if not 'body' in json:
+        return None
+    return Message(json['body'], json['from'], '')
 
 
 def make_post(data, path, hosts, headers=headers):
