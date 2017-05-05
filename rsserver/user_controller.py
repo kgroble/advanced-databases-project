@@ -19,7 +19,7 @@ class UserGraph(Graph):
 
 # NOTE: These passwords are not secure
 def is_logged_in(username, key, redis_conn):
-    # return True
+    return True
     if not redis_conn.hexists(user_hashes, username):
         return False
     hashed = redis_conn.hget(user_hashes, username).decode()
@@ -68,6 +68,7 @@ def get_user(arango, mongo, uname):
 
     user = mongo.users.find_one({'uname': uname}, projection={'_id': False})
     user['answers'] = list(only_responses)
+    del user['password']
     return user
 
 def getMatches(arango, mongo, uname):
@@ -78,22 +79,28 @@ def getMatches(arango, mongo, uname):
 
     matches = {}
     for u in query:
-        other = u['uname']
-        if other in matches:
-            matches[other] = matches[other] + 1
-        else:
-            matches[other] = 1
+        if u['uname']:
+            other = u['uname']
+            if other in matches:
+                matches[other] = matches[other] + 1
+            else:
+                matches[other] = 1
 
+    print(matches)
     return jsonify(matches), status.HTTP_200_OK
 
 def getUsers(db):
     users = db.users.find(projection={'_id': False})
     userArray = []
     for u in users:
+        del u['password']
         userArray.append(u)
     return jsonify(userArray), status.HTTP_200_OK
 
 
 def updateUserAttributes(mongo, uname, data):
+    del data['key']
+    del data['username']
+    del data['uname']
     mongo.users.update_one({'uname' : uname}, {'$set': data}, upsert=True)
     return jsonify({}), status.HTTP_204_NO_CONTENT

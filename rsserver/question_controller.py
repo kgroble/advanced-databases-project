@@ -39,9 +39,18 @@ def setAnswer(arango, uname, code):
     users = arango['Users']
     responses = arango['Response']
     answers = arango['Answer']
+    answerTo = arango['AnswerTo']
 
     user = users.fetchFirstExample({'uname': uname})
     response = responses.fetchFirstExample({'code': code})
-    print(user)
+    questionID = answerTo.fetchFirstExample({'_from': response[0]._id})[0]['_to']
+    aql = "FOR v IN 1..1 INBOUND @QID GRAPH 'UserGraph' RETURN v"
+    vars = {'QID': questionID}
+    query = arango.AQLQuery(aql, bindVars=vars)
+    for r in query:
+        toDelete = answers.fetchByExample({'_from': user[0]._id, '_to': r._id}, 50)
+        for ans in toDelete:
+            ans.delete()
+
     graph.link('Answer', user[0], response[0], {})
     return jsonify({}), status.HTTP_204_NO_CONTENT
