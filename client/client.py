@@ -3,6 +3,23 @@ from commands import *
 import socket
 
 
+startmsg = \
+"    - -      - - -\n" + \
+"  /     \\  /        \ \n" + \
+"/        \\/          \ \n" + \
+"\\                    / \n" + \
+" \\                  / \n" + \
+"  \\       cs       / \n" + \
+"   \\              / \n" + \
+"    \\            / \n" + \
+"     \\          / \n" + \
+"      \\        / \n" + \
+"       \\      / \n" + \
+"        \\    / \n" + \
+"         \\  / \n" + \
+"          \\/ "
+
+
 def log_in_repl(comms):
     while True:
         inp = input('--> ')
@@ -18,6 +35,9 @@ def log_in_repl(comms):
         except WrongCredentials:
             print('Incorrect credentials.')
             continue
+        except StopApplication:
+            print('Come back soon!')
+            return False
 
         try: # This is for sure not the best way to do this
             uname, key = res
@@ -41,6 +61,9 @@ def repl(comms, uname, key):
             print(out)
         except WrongNumberArguments:
             print('Wrong number of arguments.')
+        except StopApplication:
+            print('Come back soon!')
+            return False
 
 
 def main():
@@ -57,17 +80,26 @@ def main():
               GetQuestions(hosts),
               GetQuestion(hosts),
               SendMessage(hosts),
+              PutAttribute(hosts),
+              DeleteAttribute(hosts),
               GetMessages(hosts),
               AnswerQuestion(hosts),
+              ExitCommand(),
               GetMatches(hosts) ]
     comms.append(HelpCommand(comms))
 
     log_in_comms = [ LogIn(hosts),
+                     ExitCommand(),
                      CreateUser(hosts) ]
     log_in_comms.append(HelpCommand(log_in_comms))
 
-    uname, key = log_in_repl(log_in_comms)
-    repl(comms, uname, key)
+    print(startmsg)
+    print('Run "help" for a list of valid commands.')
+
+    res = log_in_repl(log_in_comms)
+    if res:
+        uname, key = res
+        repl(comms, uname, key)
 
 
 if __name__ == '__main__':

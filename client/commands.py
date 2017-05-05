@@ -14,6 +14,9 @@ class WrongNumberArguments(Exception):
 class WrongCredentials(Exception):
     pass
 
+class StopApplication(Exception):
+    pass
+
 """
 COMMANDS
 """
@@ -136,11 +139,20 @@ class GetMatches(Command):
     def __init__(self, hosts):
         super(GetMatches, self).__init__(hosts)
         self.name = 'get-matches'
-    def run(self, args_list, auth_user, key):
+    def run(self, args_list, auth_user, key) -> 'Will only return the top 5':
         if len(args_list) != 0:
             raise WrongNumberArguments('Command takes no arguments')
         resp = api.get_matches(self._hosts, auth_user, key)
-        return resp
+        matches = []
+        for k in resp:
+            matches.append((k, resp[k]))
+        best_matches = list(map(lambda x: x[0],
+                                sorted(matches,
+                                       key=lambda x: -x[1])))[:5]
+        s = '\n'
+        for x in best_matches:
+            s += '\n' + x
+        return s
     def get_usage(self):
         return ''
 
@@ -149,12 +161,15 @@ class GetMessages(Command):
     def __init__(self, hosts):
         super(GetMessages, self).__init__(hosts)
         self.name = 'get-messages'
-    def run(self, args_list, auth_user, key):
+    def run(self, args_list, auth_user, key) -> 'The most recent 10 messages':
         if len(args_list) != 0:
             raise WrongNumberArguments('Command takes no arguments')
-        ms = api.get_messages(self._hosts, auth_user, key)
+        all_messages = api.get_messages(self._hosts, auth_user, key)
+        only_time_stamped = filter(lambda x: x != None, all_messages)
+        recent_messages = sorted(only_time_stamped,
+                                 key=lambda x: x.date)
         s = ''
-        for m in ms:
+        for m in recent_messages:
             s += '\n' + str(m) + '\n'
         return s
     def get_usage(self):
@@ -178,6 +193,44 @@ class SendMessage(Command):
         return '<user>'
 
 
+class PutAttribute(Command):
+    def __init__(self, hosts):
+        super(PutAttribute, self).__init__(hosts)
+        self.name = 'put-attribute'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command does not take arguments')
+        attr_name = input('Attribute name: ')
+        val = input('Attribute value: ')
+        api.patch_attribute(attr_name,
+                            val,
+                            self._hosts,
+                            auth_user,
+                            key)
+        return 'Willing to bet that it worked. Not a lot though.'
+    def get_usage(self):
+        return ''
+
+
+class DeleteAttribute(Command):
+    def __init__(self, hosts):
+        super(DeleteAttribute, self).__init__(hosts)
+        self.name = 'delete-attribute'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command does not take arguments')
+        attr_name = input('Attribute name: ')
+        api.patch_attribute(attr_name,
+                            'dummy',
+                            self._hosts,
+                            auth_user,
+                            key,
+                            remove=True)
+        return 'Almost certain that this worked.'
+    def get_usage(self):
+        return ''
+
+
 class HelpCommand(Command):
     def __init__(self, commands):
         super(HelpCommand, self).__init__([])
@@ -187,6 +240,16 @@ class HelpCommand(Command):
         help_strs = map(lambda x: x.name + ' ' + x.get_usage(),
                         sorted(self._commands, key=lambda x: x.name))
         return reduce(lambda a, b: a + '\n' + b, help_strs)
+    def get_usage(self):
+        return ''
+
+
+class ExitCommand(Command):
+    def __init__(self):
+        super(ExitCommand, self).__init__([])
+        self.name = 'exit'
+    def run(self, *_):
+        raise StopApplication('Calmly exit.')
     def get_usage(self):
         return ''
 
@@ -219,19 +282,25 @@ class CreateUser(LogInCommand):
                 break
             else:
                 print('Passwords do not match')
+        name = input('Name: ')
+        description = input('Description: ')
         try:
-            res = api.create_user(uname, unsafe_pw, self._hosts)
-            print(res)
+            res = api.create_user(
+                uname,
+                name,
+                description,
+                unsafe_pw,
+                self._hosts,
+            )
         except api.UserAlreadyExists:
             return 'User already exists.'
+        except api.InvalidUsername:
+            return 'Invalid username.'
+
         res = api.log_in(uname, unsafe_pw, self._hosts)
         return res
     def get_usage(self):
         return ''
-
-
-
-
 
 
 """
