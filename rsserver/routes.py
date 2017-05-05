@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from flask_api import status
 import socket
 import redis
+import re
 
 
 arango_username = 'root'
@@ -45,6 +46,11 @@ HELPER FUNCTIONS
 
 def not_logged_in():
     return jsonify({}), status.HTTP_401_UNAUTHORIZED
+
+
+p = re.compile('^\\w+$')
+def valid_username(uname):
+    return not not p.match(uname)
 
 
 """
@@ -166,6 +172,11 @@ def sendMessage(username, recipient):
 def user():
     data = request.get_json(force=True)
     username = data['username']
+
+    if not valid_username(username):
+        return jsonify({'error': 'Bad username.'}), \
+            status.HTTP_400_BAD_REQUEST
+
     password = data['password']
     name = data['name']
     description = data['description']

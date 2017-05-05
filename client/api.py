@@ -24,6 +24,9 @@ class UserAlreadyExists(Exception):
 class InvalidUser(Exception):
     pass
 
+class InvalidUsername(Exception):
+    pass
+
 
 """
 CLASSES
@@ -123,9 +126,15 @@ def create_user(username, name, description, unsafe_password, hosts):
                         },
                        '/user/',
                        hosts)
-    if not result:
-        raise UserAlreadyExists('User already exists.')
-    return True
+    try:
+        result.raise_for_status()
+        return True
+    except:
+        data = result.json()
+        if 'bad username' in data['error'].lower():
+            raise InvalidUsername('Invalid username.')
+        else:
+            raise UserAlreadyExists('User already exists.')
 
 
 def get_user(username, hosts, auth_user, key):
@@ -278,13 +287,15 @@ def message_from_json(json):
 
 
 def make_post(data, path, hosts, headers=headers):
+    num = len(hosts)
     for host in hosts:
         result = req.post(host + path, json=data, headers=headers)
         try:
             result.raise_for_status()
             return result
         except:
-            pass
+            if num == len(hosts):
+                return result
     return False
 
 

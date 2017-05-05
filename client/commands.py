@@ -267,17 +267,15 @@ class CreateUser(LogInCommand):
                 unsafe_pw,
                 self._hosts,
             )
-            print(res)
         except api.UserAlreadyExists:
             return 'User already exists.'
+        except api.InvalidUsername:
+            return 'Invalid username.'
+
         res = api.log_in(uname, unsafe_pw, self._hosts)
         return res
     def get_usage(self):
         return ''
-
-
-
-
 
 
 """
