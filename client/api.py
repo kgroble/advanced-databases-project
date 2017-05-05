@@ -20,22 +20,32 @@ class UserDoesNotExist(Exception):
 class UserAlreadyExists(Exception):
     pass
 
+class InvalidUser(Exception):
+    pass
+
 
 """
 CLASSES
 """
 
 class User:
-    def __init__(self, username, answers):
+    def __init__(self, username, name, description, answers, attrs):
         self.username = username
+        self.name = name
+        self.description = description
         self.answers = answers
+        self.attrs = attrs
     def to_json(self):
         pass
     def __str__(self):
         s = 'Username: ' + self.username
+        s += '\nName: ' + self.name
+        s += '\nDescription: ' + self.description
         s += '\nAnswers:'
         for a in self.answers:
             s += '\n - ' + str(a)
+        for k in self.attrs:
+            s += '\n' + k + ': ' + self.attrs[k]
         return s
 
 
@@ -109,12 +119,30 @@ def get_user(username, hosts, auth_user, key):
                    hosts)
     if usr == None:
         raise UserDoesNotExist('User does not exist.')
+
     data = usr.json()
+    print(data)
     if not 'uname' in data:
         raise UserDoesNotExist('User does not exist.')
-    username = data['uname']
+    if not 'name' in data:
+        raise InvalidUser('User is not valid')
+    if not 'description' in data:
+        raise InvalidUser('User is not valid')
+
+    uname = data['uname']
+    name = data['name']
+    description = data['description']
     answers = list(map(answer_from_document, data['answers']))
-    return User(username, answers)
+    del data['uname']
+    del data['name']
+    del data['description']
+    del data['answers']
+
+    return User(uname,
+                name,
+                description,
+                answers,
+                data)
 
 
 def get_usernames(hosts, auth_user, key):
@@ -148,7 +176,22 @@ def get_questions(hosts, auth_user, key) -> 'A list of question objects':
                     '/questions/',
                     hosts)
     qs = map(question_from_json, data.json())
-    return list(filter(lambda x: x != None, qs))
+    return list(filter(lambda x: x, qs))
+
+"""
+MATCH API
+"""
+
+def get_matches(hosts, auth_user, key) -> 'A list of usernames ordered' + \
+                                          ' by match strength':
+    resp = make_get({'username': auth_user,
+                     'key': key},
+                    '/user/%s/matches/' % auth_user,
+                    hosts)
+    print(resp.json())
+    return resp.json()
+
+
 
 
 """

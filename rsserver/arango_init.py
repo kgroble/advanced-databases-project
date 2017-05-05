@@ -6,6 +6,8 @@ import socket
 
 if 'cdk' in socket.gethostname():
     arango_url = 'http://cdk433.csse.rose-hulman.edu:8529'
+elif 'JCG' in socket.gethostname():
+    arango_url = 'http://127.0.0.1:8530'
 else:
     arango_url = 'http://127.0.0.1:8529'
 
