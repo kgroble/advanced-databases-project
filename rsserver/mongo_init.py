@@ -41,7 +41,11 @@ users.insert_many([{'uname': 'coleman',
                    {'uname': 'derek',
                     'password': pw,
                     'name': 'Derek Keuaaaaaaaeou',
-                    'description': 'I am impartial'}])
+                    'description': 'I am impartial'},
+                   {'uname': 'patrick',
+                    'password': pw,
+                    'name': 'Patrick Sullivan',
+                    'description': 'I will love Haskell more than you.'}])
 
 
 indentation = {'_id': 'indentation',

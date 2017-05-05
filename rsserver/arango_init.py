@@ -87,25 +87,31 @@ editor = g.createVertex('Question', {'code': 'editor'})
 
 tabs = g.createVertex('Response', {'code': 'indentation-tabs'})
 spaces = g.createVertex('Response', {'code': 'indentation-spaces'})
+
 emacs = g.createVertex('Response', {'code': 'editor-emacs'})
 vim = g.createVertex('Response', {'code': 'editor-vim'})
 both = g.createVertex('Response', {'code': 'editor-both'})
 neither = g.createVertex('Response', {'code': 'editor-neither'})
+
 linux = g.createVertex('Response', {'code': 'os-linux'})
 osx = g.createVertex('Response', {'code': 'os-osx'})
 windows = g.createVertex('Response', {'code': 'os-windows'})
 other = g.createVertex('Response', {'code': 'os-other'})
 
+
 g.link('AnswerTo', tabs, indentation, {})
 g.link('AnswerTo', spaces, indentation, {})
+
 g.link('AnswerTo', vim, editor, {})
 g.link('AnswerTo', emacs, editor, {})
 g.link('AnswerTo', both, editor, {})
 g.link('AnswerTo', neither, editor, {})
+
 g.link('AnswerTo', osx, os, {})
 g.link('AnswerTo', windows, os, {})
 g.link('AnswerTo', linux, os, {})
 g.link('AnswerTo', other, os, {})
+
 
 g.link('Answer', coleman, spaces, {})
 g.link('Answer', kieran, tabs, {})
