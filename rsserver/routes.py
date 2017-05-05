@@ -1,4 +1,4 @@
-import user_controller, question_controller
+import user_controller, question_controller, message_controller
 from flask import Flask, abort, redirect, url_for, render_template, \
     send_from_directory, request, jsonify, session, redirect
 from pyArango.connection import *
@@ -114,13 +114,11 @@ def specific_user(username):
 
 @app.route('/user/<username>/matches/', methods=['GET'])
 def matches(username):
-    print(username)
     auth_user = request.args.get('username')
     key = request.args.get('key')
     if not user_controller.is_logged_in(auth_user, key, redis_conn):
         return not_logged_in()
     if (request.method == 'GET'):
-        print(username)
         return user_controller.getMatches(arangoDB, mongoDB, username)
 
 @app.route('/user/<username>/answer/<code>', methods=['POST'])
@@ -135,6 +133,26 @@ def answerQuestion(username, code):
                                              username,
                                              code)
 
+
+@app.route('/user/<username>/messages/', methods=['GET'])
+def getMessages(username):
+    auth_user = request.args.get('username')
+    key = request.args.get('key')
+    if not user_controller.is_logged_in(auth_user, key, redis_conn):
+        return not_logged_in()
+    if (request.method == 'GET'):
+        return message_controller.getMessages(mongoDB, username)
+
+
+@app.route('/user/<username>/message/<recipient>/', methods=['POST'])
+def sendMessage(username, recipient):
+    data = request.get_json()
+    auth_user = data['username']
+    key = data['key']
+    if request.method == 'POST':
+        if not user_controller.is_logged_in(username, key, redis_conn):
+            return not_logged_in()
+        return message_controller.sendMessage(mongoDB, username, recipient, data['body'])
 
 @app.route('/user/', methods=['POST'])
 def user():
