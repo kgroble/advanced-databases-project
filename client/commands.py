@@ -55,12 +55,14 @@ class GetUser(Command):
         self.name = 'get-user'
     def run(self, args_list, auth_user, key):
         if len(args_list) != 1:
-            raise WrongNumberArguments("Should only give one argument.")
+            raise WrongNumberArguments('Should only give one argument.')
         username = args_list[0]
         try:
             user = api.get_user(username, self._hosts, auth_user, key)
         except api.UserDoesNotExist:
             return "User does not exist."
+        except api.InvalidUser:
+            return 'User data is not valid.'
         return str(user)
     def get_usage(self):
         return '<username>'
@@ -130,6 +132,52 @@ class AnswerQuestion(Command):
         return '<question-name> <answer-code>'
 
 
+class GetMatches(Command):
+    def __init__(self, hosts):
+        super(GetMatches, self).__init__(hosts)
+        self.name = 'get-matches'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command takes no arguments')
+        resp = api.get_matches(self._hosts, auth_user, key)
+        return resp
+    def get_usage(self):
+        return ''
+
+
+class GetMessages(Command):
+    def __init__(self, hosts):
+        super(GetMessages, self).__init__(hosts)
+        self.name = 'get-messages'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 0:
+            raise WrongNumberArguments('Command takes no arguments')
+        ms = api.get_messages(self._hosts, auth_user, key)
+        s = ''
+        for m in ms:
+            s += '\n' + str(m) + '\n'
+        return s
+    def get_usage(self):
+        return ''
+
+
+class SendMessage(Command):
+    def __init__(self, hosts):
+        super(SendMessage, self).__init__(hosts)
+        self.name = 'send-message'
+    def run(self, args_list, auth_user, key):
+        if len(args_list) != 1:
+            raise WrongNumberArguments('Need to provide a target username ' + \
+                                       'and no more.')
+        to = args_list[0]
+        body = input('Message body: ')
+
+        api.send_message(to, body, self._hosts, auth_user, key)
+        return 'Message probably sent'
+    def get_usage(self):
+        return '<user>'
+
+
 class HelpCommand(Command):
     def __init__(self, commands):
         super(HelpCommand, self).__init__([])
@@ -180,6 +228,8 @@ class CreateUser(LogInCommand):
         return res
     def get_usage(self):
         return ''
+
+
 
 
 

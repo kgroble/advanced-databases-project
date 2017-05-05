@@ -44,7 +44,7 @@ def repl(comms, uname, key):
 
 
 def main():
-    remote_mode = True
+    remote_mode = False
     if remote_mode:
         hosts = [ 'http://cdk433.csse.rose-hulman.edu',
                   'http://cdk434.csse.rose-hulman.edu',
@@ -56,7 +56,10 @@ def main():
               GetAllUsers(hosts),
               GetQuestions(hosts),
               GetQuestion(hosts),
-              AnswerQuestion(hosts) ]
+              SendMessage(hosts),
+              GetMessages(hosts),
+              AnswerQuestion(hosts),
+              GetMatches(hosts) ]
     comms.append(HelpCommand(comms))
 
     log_in_comms = [ LogIn(hosts),
