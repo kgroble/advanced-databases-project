@@ -18,7 +18,6 @@ class UserGraph(Graph):
 
 
 def is_logged_in(username, key, redis_conn):
-    return True
     if not redis_conn.hexists(user_hashes, username):
         return False
     hashed = redis_conn.hget(user_hashes, username).decode()
