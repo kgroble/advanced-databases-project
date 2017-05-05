@@ -34,13 +34,22 @@ class Response(Collection):
 class Answer(Edges):
     _fields = {}
 
+class Question(Collection):
+    _fields = {'code': Field()}
+
+class AnswerTo(Edges):
+    _fields = {}
+
 class UserGraph(Graph):
     _edgeDefinitions = [EdgeDefinition('Match',
                                        fromCollections = ['Users'],
                                        toCollections = ['Users']),
                         EdgeDefinition('Answer',
                                        fromCollections = ['Users'],
-                                       toCollections = ['Response'])]
+                                       toCollections = ['Response']),
+                        EdgeDefinition('AnswerTo',
+                                       fromCollections = ['Response'],
+                                       toCollections = ['Question'])]
     _orphanedCollections = []
 
 # Creating collections
@@ -48,6 +57,8 @@ db.createCollection('Users')
 db.createCollection('Match')
 db.createCollection('Response')
 db.createCollection('Answer')
+db.createCollection('Question')
+db.createCollection('AnswerTo')
 
 # Creating indexes
 db['Users'].ensureHashIndex(['uname'], unique = True)
@@ -56,6 +67,11 @@ db['Users'].ensureHashIndex(['uname'], unique = True)
 g = db.createGraph('UserGraph')
 c = g.createVertex('Users', {'uname': 'coleman'})
 k = g.createVertex('Users', {'uname': 'kieran'})
+
+indentation = g.createVertex('Question', {'code': 'indentation'})
+os = g.createVertex('Question', {'code': 'os'})
+editor = g.createVertex('Question', {'code': 'editor'})
+
 tabs = g.createVertex('Response', {'code': 'indentation-tabs'})
 spaces = g.createVertex('Response', {'code': 'indentation-spaces'})
 emacs = g.createVertex('Response', {'code': 'editor-emacs'})
@@ -66,10 +82,21 @@ linux = g.createVertex('Response', {'code': 'os-linux'})
 osx = g.createVertex('Response', {'code': 'os-osx'})
 windows = g.createVertex('Response', {'code': 'os-windows'})
 other = g.createVertex('Response', {'code': 'os-other'})
+
+g.link('AnswerTo', tabs, indentation, {})
+g.link('AnswerTo', spaces, indentation, {})
+g.link('AnswerTo', vim, editor, {})
+g.link('AnswerTo', emacs, editor, {})
+g.link('AnswerTo', both, editor, {})
+g.link('AnswerTo', neither, editor, {})
+g.link('AnswerTo', osx, os, {})
+g.link('AnswerTo', windows, os, {})
+g.link('AnswerTo', linux, os, {})
+g.link('AnswerTo', other, os, {})
+
 g.link('Answer', c, spaces, {})
 g.link('Answer', k, tabs, {})
 g.link('Answer', c, both, {})
 g.link('Answer', k, both, {})
 g.link('Answer', c, linux, {})
 g.link('Answer', k, linux, {})
-# g.link('Match', c, k, {'strength': 9999})
