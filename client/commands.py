@@ -161,12 +161,15 @@ class GetMessages(Command):
     def __init__(self, hosts):
         super(GetMessages, self).__init__(hosts)
         self.name = 'get-messages'
-    def run(self, args_list, auth_user, key):
+    def run(self, args_list, auth_user, key) -> 'The most recent 10 messages':
         if len(args_list) != 0:
             raise WrongNumberArguments('Command takes no arguments')
-        ms = api.get_messages(self._hosts, auth_user, key)
+        all_messages = api.get_messages(self._hosts, auth_user, key)
+        only_time_stamped = filter(lambda x: x != None, all_messages)
+        recent_messages = sorted(only_time_stamped,
+                                 key=lambda x: x.date)
         s = ''
-        for m in ms:
+        for m in recent_messages:
             s += '\n' + str(m) + '\n'
         return s
     def get_usage(self):

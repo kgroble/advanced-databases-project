@@ -283,7 +283,9 @@ def message_from_json(json):
         return None
     if not 'body' in json:
         return None
-    return Message(json['body'], json['from'], '')
+    if not 'date' in json:
+        return None
+    return Message(json['body'], json['from'], json['date'])
 
 
 def make_post(data, path, hosts, headers=headers):
