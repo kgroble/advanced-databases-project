@@ -35,6 +35,7 @@ for coll in db.collections:
     if not(coll[0] == '_'):
         db[coll].delete()
 
+db.reload()
 
 db.createCollection('Users')
 db.createCollection('Follows')
