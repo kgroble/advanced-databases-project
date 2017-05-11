@@ -4,6 +4,7 @@ from pyArango.graph import Graph, EdgeDefinition
 from flask import jsonify
 from flask_api import status
 import bcrypt
+import connections
 
 user_key_prefix = 'hashes'
 expire_time = 60 * 30 # 30 minutes
@@ -20,8 +21,6 @@ def is_logged_in(username, key, redis_conn):
     if not redis_conn.exists(user_key):
         return False
     stored = redis_conn.get(user_key).decode()
-    print(key)
-    print(stored)
     if stored == key:
         redis_conn.expire(user_key, expire_time)
         return True
@@ -81,22 +80,26 @@ def get_user(arango, mongo, uname):
     return user
 
 def getMatches(arango, mongo, uname):
-    uid = arango['Users'].fetchFirstExample({'uname': uname},
+    if connections.arango_up(arango):
+        uid = arango['Users'].fetchFirstExample({'uname': uname},
                                             rawResults=True)[0]['_id']
-    aql = "FOR v IN 2..2 ANY @user GRAPH 'UserGraph' RETURN v"
-    bindVars = {'user': uid}
-    query = arango.AQLQuery(aql, bindVars = bindVars)
+        aql = "FOR v IN 2..2 ANY @user GRAPH 'UserGraph' RETURN v"
+        bindVars = {'user': uid}
+        query = arango.AQLQuery(aql, bindVars = bindVars)
 
-    matches = {}
-    for u in query:
-        if u['uname']:
-            other = u['uname']
-            if other in matches:
-                matches[other] = matches[other] + 1
-            else:
-                matches[other] = 1
+        matches = {}
+        for u in query:
+            if u['uname']:
+                other = u['uname']
+                if other in matches:
+                    matches[other] = matches[other] + 1
+                else:
+                    matches[other] = 1
 
-    print(matches)
+                    mongo.users.update_one({'uname': uname}, {'$set': {'recent_matches': matches}}, upsert=True)
+    else:
+        matches = mongo.users.find_one({'uname': uname})['recent_matches']
+
     return jsonify(matches), status.HTTP_200_OK
 
 def getUsers(db):
@@ -109,7 +112,7 @@ def getUsers(db):
 
 
 def updateUserAttributes(mongo, uname, data):
-    no_good = [ 'key', 'username', 'password', 'uname' ]
+    no_good = [ 'key', 'username', 'password', 'uname', 'recent_matches' ]
     for x in no_good:
         if x in data:
             del data[x]
