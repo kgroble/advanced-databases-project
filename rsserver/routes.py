@@ -15,15 +15,16 @@ if 'cdk' in socket.gethostname():
     arango_url = 'http://cdk433.csse.rose-hulman.edu:8529'
     mongo_url = 'mongodb://cdk433.csse.rose-hulman.edu:27017'
     mongoConn = MongoClient(mongo_url,
-                        replicaset='cdk')
+                            replicaset='cdk',
+                            serverSelectionTimeoutMS=1000)
 elif 'JCG' in socket.gethostname():
     arango_url = 'http://127.0.0.1:8530'
     mongo_url = 'mongodb://127.0.0.1:27017'
-    mongoConn = MongoClient(mongo_url)
+    mongoConn = MongoClient(mongo_url, serverSelectionTimeoutMS=1000)
 else:
     arango_url = 'http://127.0.0.1:8529'
     mongo_url = 'mongodb://127.0.0.1:27017'
-    mongoConn = MongoClient(mongo_url)
+    mongoConn = MongoClient(mongo_url, serverSelectionTimeoutMS=1000)
 
 
 app = Flask(__name__,

@@ -63,20 +63,25 @@ def createUser(uname, name, description, password, arangoDB, mongoDB):
 
 
 def get_user(arango, mongo, uname):
-    userGraph = arango.graphs['UserGraph']
-    users = arango['Users']
-    arango_user = users.fetchFirstExample({'uname': uname})[0]
-
-    # Getting responses to questions
-    val = userGraph.traverse(arango_user,
-                             maxDepth=1,
-                             direction='any')
-    trav = val['visited']['vertices']
-    only_responses = filter(lambda x: x['_id'].startswith('Response'), trav)
-
     user = mongo.users.find_one({'uname': uname}, projection={'_id': False})
-    user['answers'] = list(only_responses)
+
+    if connections.arango_up(arango):
+        userGraph = arango.graphs['UserGraph']
+        users = arango['Users']
+        arango_user = users.fetchFirstExample({'uname': uname})[0]
+
+        # Getting responses to questions
+        val = userGraph.traverse(arango_user,
+                                 maxDepth=1,
+                                 direction='any')
+        trav = val['visited']['vertices']
+        only_responses = filter(lambda x: x['_id'].startswith('Response'), trav)
+        user['answers'] = list(only_responses)
+    else:
+        user['answers'] = []
+
     del user['password']
+    del user['recent_matches']
     return user
 
 def getMatches(arango, mongo, uname):
@@ -107,6 +112,7 @@ def getUsers(db):
     userArray = []
     for u in users:
         del u['password']
+        del u['recent_matches']
         userArray.append(u)
     return jsonify(userArray), status.HTTP_200_OK
 
