@@ -7,7 +7,7 @@ def arango_up(arango):
 
 def mongo_up(mongo):
     try:
-        mongo.list()
+        mongo.current_op()
         return True
     except:
         return False

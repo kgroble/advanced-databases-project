@@ -56,6 +56,7 @@ def createUser(uname, name, description, password, arangoDB, mongoDB):
             'password': password,
             'name': name,
             'description': description,
+            'recent_matches': []
         })
         return newUser
     except CreationError:
@@ -101,11 +102,14 @@ def getMatches(arango, mongo, uname):
                 else:
                     matches[other] = 1
 
-                    mongo.users.update_one({'uname': uname}, {'$set': {'recent_matches': matches}}, upsert=True)
-    else:
+        mongo.users.update_one({'uname': uname}, {'$set': {'recent_matches': matches}}, upsert=True)
+        return jsonify(matches), status.HTTP_200_OK
+    elif connections.mongo_up(mongo):
         matches = mongo.users.find_one({'uname': uname})['recent_matches']
+        return jsonify(matches), status.HTTP_200_OK
+    else:
+        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
 
-    return jsonify(matches), status.HTTP_200_OK
 
 def getUsers(db):
     users = db.users.find(projection={'_id': False})

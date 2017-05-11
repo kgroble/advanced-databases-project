@@ -11,7 +11,6 @@ class Users(Collection):
 class Match(Edges):
     _fields = {'strength': Field()}
 
-
 class Response(Collection):
     _fields = {'code': Field()}
 

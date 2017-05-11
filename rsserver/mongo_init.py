@@ -33,19 +33,23 @@ pw = bcrypt.hashpw(hashed_pw.encode(), bcrypt.gensalt()).decode()
 users.insert_many([{'uname': 'coleman',
                     'password': pw,
                     'name': 'Coleman Gibson',
-                    'description': 'I am great'},
+                    'description': 'I am great',
+                    'recent_matches': []},
                    {'uname': 'kieran',
                     'password': pw,
                     'name': 'Kieran Groble',
-                    'description': 'I am not great'},
+                    'description': 'I am not great',
+                    'recent_matches': []},
                    {'uname': 'derek',
                     'password': pw,
                     'name': 'Derek Keuaaaaaaaeou',
-                    'description': 'I am impartial'},
+                    'description': 'I am impartial',
+                    'recent_matches': []},
                    {'uname': 'patrick',
                     'password': pw,
                     'name': 'Patrick Sullivan',
-                    'description': 'I will love Haskell more than you.'}])
+                    'description': 'I will love Haskell more than you.',
+                    'recent_matches': []}])
 
 
 indentation = {'_id': 'indentation',
