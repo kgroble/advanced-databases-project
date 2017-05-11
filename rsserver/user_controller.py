@@ -1,10 +1,12 @@
+import uuid
 from pyArango.connection import *
 from pyArango.graph import Graph, EdgeDefinition
 from flask import jsonify
 from flask_api import status
 import bcrypt
 
-user_hashes = 'hashes'
+user_key_prefix = 'hashes'
+expire_time = 60 * 30 # 30 minutes
 
 class UserGraph(Graph):
     _edgeDefinitions = [EdgeDefinition('Match',
@@ -14,24 +16,33 @@ class UserGraph(Graph):
 
 
 def is_logged_in(username, key, redis_conn):
-    if not redis_conn.hexists(user_hashes, username):
+    user_key = user_key_prefix + '-' + username
+    if not redis_conn.exists(user_key):
         return False
-    hashed = redis_conn.hget(user_hashes, username).decode()
-    return hashed == key
+    stored = redis_conn.get(user_key).decode()
+    print(key)
+    print(stored)
+    if stored == key:
+        redis_conn.expire(user_key, expire_time)
+        return True
+    return False
 
 
 def log_in(username, hpw, mongo_conn, redis_conn):
     user_doc = mongo_conn.users.find_one({'uname': username})
     if bcrypt.checkpw(hpw.encode(), user_doc['password'].encode()):
         # this should be set to a random key and returned to the user
-        redis_conn.hset(user_hashes, username, hpw)
-        return True
+        user_key = user_key_prefix + '-' + username
+        token = str(uuid.uuid4())
+        redis_conn.setex(user_key, token, expire_time)
+        return token
     return False
 
 
 def log_out(username, key, redis_conn):
     if is_logged_in(username, key, redis_conn):
-        redis_conn.hdel(user_hashes, username)
+        user_key = user_key_prefix + '-' + username
+        redis_conn.delete(user_key)
         return True
     return False
 

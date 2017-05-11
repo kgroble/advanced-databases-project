@@ -63,8 +63,10 @@ def login():
     data = request.get_json()
     username = data['username']
     key = data['key']
-    if user_controller.log_in(username, key, mongoDB, redis_conn):
-        return jsonify({}), status.HTTP_204_NO_CONTENT
+    token = user_controller.log_in(username, key, mongoDB, redis_conn)
+    if token:
+        print(token)
+        return jsonify({'key': token}), status.HTTP_201_CREATED
     return not_logged_in()
 
 

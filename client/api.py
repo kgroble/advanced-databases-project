@@ -105,7 +105,7 @@ def log_in(username, unsafe_password, hosts):
                        hosts)
     try:
         result.raise_for_status()
-        return username, pw
+        return username, result.json()['key']
     except:
         return False
 
