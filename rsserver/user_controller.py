@@ -56,7 +56,8 @@ def createUser(uname, name, description, password, arangoDB, mongoDB):
             'password': password,
             'name': name,
             'description': description,
-            'recent_matches': []
+            'recent_matches': [],
+            'recent_answers': []
         })
         return newUser
     except CreationError:
@@ -64,6 +65,9 @@ def createUser(uname, name, description, password, arangoDB, mongoDB):
 
 
 def get_user(arango, mongo, uname):
+    if not(connections.mongo_up(mongo)):
+        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
+
     user = mongo.users.find_one({'uname': uname}, projection={'_id': False})
 
     if connections.arango_up(arango):
@@ -76,13 +80,19 @@ def get_user(arango, mongo, uname):
                                  maxDepth=1,
                                  direction='any')
         trav = val['visited']['vertices']
-        only_responses = filter(lambda x: x['_id'].startswith('Response'), trav)
-        user['answers'] = list(only_responses)
+        only_responses = list(filter(lambda x: x['_id'].startswith('Response'), trav))
+        only_responses = list(map(lambda x: {'code': x['code']}, only_responses))
+        user['answers'] = only_responses
+        print(only_responses)
+        mongo.users.update_one({'uname': uname}, {'$set': {'recent_answers': only_responses}}, upsert=True)
     else:
-        user['answers'] = []
+        user['answers'] = user['recent_answers']
 
-    del user['password']
-    del user['recent_matches']
+    no_good = [ 'password', 'recent_answers', 'recent_matches' ]
+    for x in no_good:
+        if x in user:
+            del user[x]
+
     return user
 
 def getMatches(arango, mongo, uname):
@@ -122,7 +132,7 @@ def getUsers(db):
 
 
 def updateUserAttributes(mongo, uname, data):
-    no_good = [ 'key', 'username', 'password', 'uname', 'recent_matches' ]
+    no_good = [ 'key', 'username', 'password', 'uname', 'recent_matches', 'recent_answers' ]
     for x in no_good:
         if x in data:
             del data[x]
