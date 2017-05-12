@@ -4,29 +4,12 @@ from pyArango.connection import *
 from pyArango.graph import Graph, EdgeDefinition
 from pyArango.collection import Collection, Field
 from pyArango.collection import Edges
-
-class Users(Collection):
-    _fields = {'uname': Field()}
-
-class Match(Edges):
-    _fields = {'strength': Field()}
-
-class Response(Collection):
-    _fields = {'code': Field()}
-
-class Answer(Edges):
-    _fields = {}
-
-class UserGraph(Graph):
-    _edgeDefinitions = [EdgeDefinition('Match',
-                                       fromCollections = ['Users'],
-                                       toCollections = ['Users']),
-                        EdgeDefinition('Answer',
-                                       fromCollections = ['Users'],
-                                       toCollections = ['Response'])]
-    _orphanedCollections = []
+import connections, datatypes
 
 def getQuestions(mongo):
+    if not(connections.mongo_up(mongo)):
+        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
+
     questions = mongo.questions.find()
     questionArray = []
     for q in questions:
@@ -34,6 +17,9 @@ def getQuestions(mongo):
     return jsonify(questionArray), status.HTTP_200_OK
 
 def setAnswer(arango, uname, code):
+    if not(connections.arango_up(arango)):
+        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
+
     graph = arango.graphs['UserGraph']
     users = arango['Users']
     responses = arango['Response']

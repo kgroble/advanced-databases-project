@@ -1,8 +1,6 @@
 from pyArango.connection import *
-from pyArango.graph import Graph, EdgeDefinition
-from pyArango.collection import Collection, Field
-from pyArango.collection import Edges
 import socket
+import datatypes
 
 if 'cdk' in socket.gethostname():
     arango_url = 'http://cdk433.csse.rose-hulman.edu:8529'
@@ -23,37 +21,6 @@ except KeyError:
     db = conn['RelationalSchema']
 
 # Weird arango driver stuff
-class Users(Collection):
-    _fields = {'uname': Field()}
-
-class Match(Edges):
-    _fields = {'strength': Field()}
-
-
-class Response(Collection):
-    _fields = {'code': Field()}
-
-class Answer(Edges):
-    _fields = {}
-
-class Question(Collection):
-    _fields = {'code': Field()}
-
-class AnswerTo(Edges):
-    _fields = {}
-
-class UserGraph(Graph):
-    _edgeDefinitions = [EdgeDefinition('Match',
-                                       fromCollections = ['Users'],
-                                       toCollections = ['Users']),
-                        EdgeDefinition('Answer',
-                                       fromCollections = ['Users'],
-                                       toCollections = ['Response']),
-                        EdgeDefinition('AnswerTo',
-                                       fromCollections = ['Response'],
-                                       toCollections = ['Question'])]
-    _orphanedCollections = []
-
 
 # Creating collections
 for graph in db.graphs:

@@ -4,17 +4,10 @@ from pyArango.graph import Graph, EdgeDefinition
 from flask import jsonify
 from flask_api import status
 import bcrypt
-import connections
+import connections, datatypes
 
 user_key_prefix = 'hashes'
 expire_time = 60 * 30 # 30 minutes
-
-class UserGraph(Graph):
-    _edgeDefinitions = [EdgeDefinition('Match',
-                                       fromCollections = ['Users'],
-                                       toCollections = ['Users'])]
-    _orphanedCollections = []
-
 
 def is_logged_in(username, key, redis_conn):
     user_key = user_key_prefix + '-' + username
@@ -47,6 +40,9 @@ def log_out(username, key, redis_conn):
 
 
 def createUser(uname, name, description, password, arangoDB, mongoDB):
+    if not(connections.arango_up(arangoDB)) or not(connections.mongo_up(mongoDB)):
+        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
+
     userGraph = arangoDB.graphs['UserGraph']
     try:
         newUser = userGraph.createVertex('Users',
@@ -122,6 +118,9 @@ def getMatches(arango, mongo, uname):
 
 
 def getUsers(db):
+    if not(connections.mongo_up(mongo)):
+        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
+
     users = db.users.find(projection={'_id': False})
     userArray = []
     for u in users:
@@ -132,6 +131,9 @@ def getUsers(db):
 
 
 def updateUserAttributes(mongo, uname, data):
+    if not(connections.mongo_up(mongo)):
+        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
+
     no_good = [ 'key', 'username', 'password', 'uname', 'recent_matches', 'recent_answers' ]
     for x in no_good:
         if x in data:
