@@ -3,20 +3,6 @@ import api
 from functools import reduce
 import getpass
 
-
-"""
-EXCEPTIONS
-"""
-
-class WrongNumberArguments(Exception):
-    pass
-
-class WrongCredentials(Exception):
-    pass
-
-class StopApplication(Exception):
-    pass
-
 """
 COMMANDS
 """
