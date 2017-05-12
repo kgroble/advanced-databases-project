@@ -3,6 +3,7 @@ import requests as req
 import bcrypt
 import hashlib
 import json
+from exceptions import *
 
 
 """
@@ -10,22 +11,6 @@ CONSTANTS
 """
 
 headers = {'content-type': 'application/json'}
-
-"""
-EXCEPTIONS
-"""
-
-class UserDoesNotExist(Exception):
-    pass
-
-class UserAlreadyExists(Exception):
-    pass
-
-class InvalidUser(Exception):
-    pass
-
-class InvalidUsername(Exception):
-    pass
 
 
 """
@@ -99,15 +84,15 @@ def log_in(username, unsafe_password, hosts):
     h = hashlib.sha256()
     h.update(unsafe_password.encode())
     pw = h.hexdigest()
-    result = make_post({'username': username,
+    try:
+        result = make_post({'username': username,
                         'key': pw},
                        '/login/',
                        hosts)
-    try:
         result.raise_for_status()
         return username, result.json()['key']
-    except:
-        return False
+    except NotLoggedIn:
+        raise WrongCredentials()
 
 
 def logout(username, key):
@@ -292,13 +277,15 @@ def make_post(data, path, hosts, headers=headers):
     num = len(hosts)
     for host in hosts:
         result = req.post(host + path, json=data, headers=headers)
+        if result.status_code == 401:
+            raise NotLoggedIn()
         try:
             result.raise_for_status()
             return result
         except:
             if num == len(hosts):
                 return result
-    return False
+    raise UnknownError()
 
 
 def make_patch(data, path, hosts, headers=headers):
@@ -308,19 +295,23 @@ def make_patch(data, path, hosts, headers=headers):
             data=json.dumps(data),
             headers=headers
         )
+        if result.status_code == 401:
+            raise NotLoggedIn()
         try:
             result.raise_for_status()
             return result
         except:
-            pass
+            raise UnknownError()
 
 
 
 def make_get(params, path, hosts, headers=headers):
     for host in hosts:
         result = req.get(host + path, params=params, headers=headers)
+        if result.status_code == 401:
+            raise NotLoggedIn()
         try:
             result.raise_for_status()
             return result
         except:
-            pass
+            raise UnknownError()
