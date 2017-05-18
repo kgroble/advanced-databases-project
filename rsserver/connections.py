@@ -1,4 +1,7 @@
-def arango_up(arango):
+def arango_up(arango, redis):
+    if redis.llen('recovery_queue') > 0:
+        return False
+
     try:
         arango.reload()
         return True

@@ -1,3 +1,4 @@
+import json
 from flask import jsonify
 from flask_api import status
 from pyArango.connection import *
@@ -16,9 +17,16 @@ def getQuestions(mongo):
         questionArray.append(q)
     return jsonify(questionArray), status.HTTP_200_OK
 
-def setAnswer(arango, uname, code):
-    if not(connections.arango_up(arango)):
-        return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
+def setAnswer(arango, uname, code, redis_conn):
+    if not(connections.arango_up(arango, redis_conn)):
+        recovery_entry = json.dumps({
+            'request_type': 'answer_question',
+            'uname': uname,
+            'code': code
+        })
+        redis_conn.rpush('recovery_queue', recovery_entry)
+
+        return jsonify({}), status.HTTP_204_NO_CONTENT
 
     graph = arango.graphs['UserGraph']
     users = arango['Users']

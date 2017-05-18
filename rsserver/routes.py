@@ -105,7 +105,7 @@ def specific_user(username):
         auth_user = request.args.get('username')
         if not user_controller.is_logged_in(auth_user, key, redis_conn):
             return not_logged_in()
-        user = user_controller.get_user(arangoDB, mongoDB, username)
+        user = user_controller.get_user(arangoDB, mongoDB, username, redis_conn)
         if user == None:
             stat = status.HTTP_404_NOT_FOUND
             jsn = jsonify({'error': 'User not found.'})
@@ -132,7 +132,7 @@ def matches(username):
     if not user_controller.is_logged_in(auth_user, key, redis_conn):
         return not_logged_in()
     if (request.method == 'GET'):
-        return user_controller.getMatches(arangoDB, mongoDB, username)
+        return user_controller.getMatches(arangoDB, mongoDB, username, redis_conn)
 
 @app.route('/user/<username>/answer/<code>', methods=['POST'])
 def answerQuestion(username, code):
@@ -144,7 +144,8 @@ def answerQuestion(username, code):
             return not_logged_in()
         return question_controller.setAnswer(arangoDB,
                                              username,
-                                             code)
+                                             code,
+                                             redis_conn)
 
 
 @app.route('/user/<username>/messages/', methods=['GET'])
@@ -190,10 +191,11 @@ def user():
         password,
         arangoDB,
         mongoDB,
+        redis_conn,
     )
     if not new_user:
         return jsonify({'error': 'User already exists.'}), \
             status.HTTP_400_BAD_REQUEST
     else:
-        return jsonify(new_user._store), \
+        return jsonify(new_user), \
             status.HTTP_201_CREATED

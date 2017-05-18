@@ -1,4 +1,4 @@
-import uuid
+import uuid, json
 from pyArango.connection import *
 from pyArango.graph import Graph, EdgeDefinition
 from flask import jsonify
@@ -39,34 +39,52 @@ def log_out(username, key, redis_conn):
     return False
 
 
-def createUser(uname, name, description, password, arangoDB, mongoDB):
-    if not(connections.arango_up(arangoDB)) or not(connections.mongo_up(mongoDB)):
+def createUser(uname, name, description, password, arangoDB, mongoDB, redis_conn):
+    if not(connections.mongo_up(mongoDB)):
         return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
 
-    userGraph = arangoDB.graphs['UserGraph']
-    try:
-        newUser = userGraph.createVertex('Users',
-                                         {'uname': uname})
-        mongoUser = mongoDB.users.insert_one({
+    if mongoDB.users.find_one({'uname': uname}):
+        return False
+
+    mongoUser = mongoDB.users.insert_one({
+        'uname': uname,
+        'password': password,
+        'name': name,
+        'description': description,
+        'recent_matches': [],
+        'recent_answers': []
+    })
+
+    if not(connections.arango_up(arangoDB, redis_conn)):
+        recovery_entry = json.dumps({
+            'request_type': 'create_user',
             'uname': uname,
             'password': password,
             'name': name,
             'description': description,
-            'recent_matches': [],
-            'recent_answers': []
         })
-        return newUser
-    except CreationError:
-        return False
+        print('recovery entry:', recovery_entry)
+        redis_conn.rpush('recovery_queue', recovery_entry)
+        mongoUser = mongoDB.users.find_one({'uname': uname})
+        del mongoUser['_id']
+        return mongoUser
+    else:
+        userGraph = arangoDB.graphs['UserGraph']
+        try:
+            newUser = userGraph.createVertex('Users',
+                                         {'uname': uname})
+            return newUser._store
+        except CreationError:
+            return False
 
 
-def get_user(arango, mongo, uname):
+def get_user(arango, mongo, uname, redis_conn):
     if not(connections.mongo_up(mongo)):
         return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
 
     user = mongo.users.find_one({'uname': uname}, projection={'_id': False})
 
-    if connections.arango_up(arango):
+    if connections.arango_up(arango, redis_conn):
         userGraph = arango.graphs['UserGraph']
         users = arango['Users']
         arango_user = users.fetchFirstExample({'uname': uname})[0]
@@ -91,8 +109,8 @@ def get_user(arango, mongo, uname):
 
     return user
 
-def getMatches(arango, mongo, uname):
-    if connections.arango_up(arango):
+def getMatches(arango, mongo, uname, redis_conn):
+    if connections.arango_up(arango, redis_conn):
         uid = arango['Users'].fetchFirstExample({'uname': uname},
                                             rawResults=True)[0]['_id']
         aql = "FOR v IN 2..2 ANY @user GRAPH 'UserGraph' RETURN v"
@@ -118,7 +136,7 @@ def getMatches(arango, mongo, uname):
 
 
 def getUsers(db):
-    if not(connections.mongo_up(mongo)):
+    if not(connections.mongo_up(db)):
         return jsonify({}), status.HTTP_503_SERVICE_UNAVAILABLE
 
     users = db.users.find(projection={'_id': False})
