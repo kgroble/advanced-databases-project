@@ -2,6 +2,7 @@
 import api
 from functools import reduce
 import getpass
+from exceptions import *
 
 """
 COMMANDS
