@@ -71,7 +71,7 @@ def poll(redis_conn, arango_conn):
         print('Recieved', str_result)
         result = json.loads(str_result[1].decode())
         if not arango_up(arango_conn):
-            redis_conn.lpush(open_requests_dict, result)
+            redis_conn.lpush(open_requests_dict, json.dumps(result))
             time.sleep(1)
             continue
         handle_command(result, arango_conn)
@@ -81,7 +81,7 @@ def main():
     redis_conn = redis.Redis()
     arango_username = 'root'
     arango_password = 'srirammohan'
-    arango_url = 'http://127.0.0.1:8530'
+    arango_url = 'http://127.0.0.1:8529'
     arangoConn = Connection(arangoURL=arango_url,
                             username=arango_username,
                             password=arango_password)
