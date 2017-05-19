@@ -36,8 +36,11 @@ open_requests_dict = 'recovery_queue'
 def handle_user_insert(user_dict, arango_conn):
     user_graph = arango_conn.graphs['UserGraph']
     uname = user_dict['uname']
-    user_graph.createVertex('Users',
-                            {'uname': uname})
+    try:
+        user_graph.createVertex('Users',
+                                {'uname': uname})
+    except:
+        print('Update failed')
 
 
 def handle_question_insert(question_dict, arango_db):
@@ -48,7 +51,10 @@ def handle_question_insert(question_dict, arango_db):
     responses = arango_db['Response']
     answers = arango_db['Answer']
     answerTo = arango_db['AnswerTo']
-    no_check_insert_answer(arango_db, uname, code)
+    try:
+        no_check_insert_answer(arango_db, uname, code)
+    except:
+        print('Update failed')
 
 
 def handle_command(command, arango_conn):
