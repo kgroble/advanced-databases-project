@@ -38,7 +38,7 @@ arangoDB = arangoConn['RelationalSchema']
 #                         replicaset='cdk')
 mongoDB = mongoConn.relational_schema
 local_redis_conn = redis.Redis()
-redis_master = local_redis_conn['master_host']
+redis_master = local_redis_conn.info()['master_host']
 redis_conn = redis.Redis(redis_master)
 
 
